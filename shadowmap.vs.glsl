@@ -7,7 +7,6 @@ layout (location=1) in vec3 normal;
 out vec3 Normal;
 out vec3 Position;
 out vec4 ShadowCoord;
-out mat4 view_matrix;
 
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
@@ -21,6 +20,4 @@ void main()
     Normal = normalize( NormalMatrix * normal );
     ShadowCoord = ShadowMatrix * vec4(position,1.0);
     gl_Position = MVP * vec4(position,1.0);
-
-    view_matrix = ViewMatrix;
 }

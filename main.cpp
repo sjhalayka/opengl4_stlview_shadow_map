@@ -142,8 +142,8 @@ void display_func(void)
 
 	GLuint shadowFBO, pass1Index, pass2Index;
 
-	int shadowMapWidth = 2048;
-	int shadowMapHeight = 2048;
+	int shadowMapWidth = 8192;
+	int shadowMapHeight = 8192;
 
 	mat4 lightPV, shadowBias;
 
@@ -152,7 +152,7 @@ void display_func(void)
 	GLuint depthTex;
 	glGenTextures(1, &depthTex);
 	glBindTexture(GL_TEXTURE_2D, depthTex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, shadowMapWidth, shadowMapHeight);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -199,15 +199,14 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	vec3 lightPos = vec3(100.0f, 100.0f, 100.0f);  // World coords
+	float c = 1.65f;
+	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
-	lightFrustum.setPerspective(45.0f, 1.0f, 0.01f, 1000.0f);
-	lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
+	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
 
 	shadow_map.use_program();
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
-
 
 
 	mat4 model(1.0f);
@@ -223,6 +222,11 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
+
+	vec4 lp = view * vec4(lightPos, 1.0f);
+	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
+
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -252,7 +256,11 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
-
+	
+	lp = view * vec4(lightPos, 1.0f);
+	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
+	
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, win_x, win_y);
