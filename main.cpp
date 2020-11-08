@@ -144,14 +144,26 @@ void display_func(void)
 
 	int shadowMapWidth = 8192;
 	int shadowMapHeight = 8192;
-
 	mat4 lightPV, shadowBias;
 
+	glGenFramebuffers(1, &render_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+	glGenTextures(3, fbo_textures);
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, 2048, 2048);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, 2048, 2048);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
 	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
-	// The depth buffer texture
-	GLuint depthTex;
-	glGenTextures(1, &depthTex);
-	glBindTexture(GL_TEXTURE_2D, depthTex);
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -161,15 +173,28 @@ void display_func(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 
+
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbo_textures[0], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbo_textures[1], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbo_textures[2], 0);
+
+	static const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
+	glDrawBuffers(2, draw_buffers);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	// Assign the depth buffer texture to texture channel 0
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
 
 	// Create and set up the FBO
 	glGenFramebuffers(1, &shadowFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_TEXTURE_2D, depthTex, 0);
+		GL_TEXTURE_2D, fbo_textures[2], 0);
 
 	GLenum drawBuffers[] = { GL_NONE };
 	glDrawBuffers(1, drawBuffers);
@@ -199,7 +224,6 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	float c = 1.65f;
 	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -235,7 +259,7 @@ void display_func(void)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	//glPolygonOffset(2.5f, 10.0f);
+	glPolygonOffset(2.5f, 10.0f);
 
 	draw_meshes(shadow_map.get_program());
 	glFlush();
@@ -273,7 +297,8 @@ void display_func(void)
 	glFlush();
 	glutSwapBuffers();
 
-	glDeleteTextures(1, &depthTex);
+	glDeleteFramebuffers(1, &render_fbo);
+	glDeleteTextures(3, fbo_textures);
 	glDeleteFramebuffers(1, &shadowFBO);
 }
 
