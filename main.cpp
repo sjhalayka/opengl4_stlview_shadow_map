@@ -140,14 +140,12 @@ void display_func(void)
 {
 	Frustum lightFrustum;
 
-	GLuint shadowFBO, pass1Index, pass2Index;
+	GLuint pass1Index, pass2Index;
 
 	int shadowMapWidth = 8192;
 	int shadowMapHeight = 8192;
 	mat4 lightPV, shadowBias;
 
-	glGenFramebuffers(1, &render_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	glGenTextures(3, fbo_textures);
 
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
@@ -173,8 +171,6 @@ void display_func(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 
-
-
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbo_textures[0], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbo_textures[1], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbo_textures[2], 0);
@@ -191,21 +187,12 @@ void display_func(void)
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
 
 	// Create and set up the FBO
-	glGenFramebuffers(1, &shadowFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glGenFramebuffers(1, &render_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 		GL_TEXTURE_2D, fbo_textures[2], 0);
 
-	GLenum drawBuffers[] = { GL_NONE };
-	glDrawBuffers(1, drawBuffers);
 
-	GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (result == GL_FRAMEBUFFER_COMPLETE) {
-		printf("Framebuffer is complete.\n");
-	}
-	else {
-		printf("Framebuffer is not complete.\n");
-	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -252,7 +239,7 @@ void display_func(void)
 
 
 
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
@@ -299,7 +286,7 @@ void display_func(void)
 
 	glDeleteFramebuffers(1, &render_fbo);
 	glDeleteTextures(3, fbo_textures);
-	glDeleteFramebuffers(1, &shadowFBO);
+	//glDeleteFramebuffers(1, &shadowFBO);
 }
 
 void keyboard_func(unsigned char key, int x, int y)
