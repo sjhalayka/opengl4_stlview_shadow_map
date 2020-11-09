@@ -78,10 +78,7 @@ int mouse_y = 0;
 vec3 ray;
 
 
-GLuint      render_fbo = 0;
-GLuint      fbo_textures[3] = { 0, 0, 0 };
-GLuint      quad_vao = 0;
-GLuint      points_buffer = 0;
+
 
 
 vertex_fragment_shader ssao;

@@ -73,7 +73,7 @@ bool init_opengl(const int &width, const int &height)
 	if(win_y < 1)
 		win_y = 1;
 
-	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Binary Stereo Lithography file viewer");
@@ -98,6 +98,11 @@ bool init_opengl(const int &width, const int &height)
 		return false;
 	}
 
+	if (false == ssao.init("ssao.vs.glsl", "ssao.fs.glsl"))
+	{
+		cout << "Could not load ssao shader" << endl;
+		return false;
+	}
 
 	uniforms.ssao.ssao_radius = glGetUniformLocation(ssao.get_program(), "ssao_radius");
 	uniforms.ssao.ssao_level = glGetUniformLocation(ssao.get_program(), "ssao_level");
@@ -105,8 +110,6 @@ bool init_opengl(const int &width, const int &height)
 	uniforms.ssao.weight_by_angle = glGetUniformLocation(ssao.get_program(), "weight_by_angle");
 	uniforms.ssao.randomize_points = glGetUniformLocation(ssao.get_program(), "randomize_points");
 	uniforms.ssao.point_count = glGetUniformLocation(ssao.get_program(), "point_count");
-
-
 
 	ssao_level = 1.0f;
 	ssao_radius = 0.05f;
@@ -117,35 +120,7 @@ bool init_opengl(const int &width, const int &height)
 	point_count = 10;
 
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
-	SAMPLE_POINTS point_data;
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		do
-		{
-			point_data.point[i].x = random_float() * 2.0f - 1.0f;
-			point_data.point[i].y = random_float() * 2.0f - 1.0f;
-			point_data.point[i].z = random_float(); //  * 2.0f - 1.0f;
-			point_data.point[i].w = 0.0f;
-		} while (length(point_data.point[i]) > 1.0f);
-
-		point_data.point[i] = normalize(point_data.point[i]);
-	}
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		point_data.random_vectors[i].x = random_float();
-		point_data.random_vectors[i].y = random_float();
-		point_data.random_vectors[i].z = random_float();
-		point_data.random_vectors[i].w = random_float();
-	}
-
-	glGenBuffers(1, &points_buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
 
 
 
@@ -192,15 +167,48 @@ void display_func(void)
 	int shadowMapHeight = 8192;
 	mat4 lightPV, shadowBias;
 
+	GLuint      render_fbo = 0;
+	GLuint      fbo_textures[3] = { 0, 0, 0 };
+	GLuint      quad_vao = 0;
+	GLuint      points_buffer = 0;
+
+	SAMPLE_POINTS point_data;
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		do
+		{
+			point_data.point[i].x = random_float() * 2.0f - 1.0f;
+			point_data.point[i].y = random_float() * 2.0f - 1.0f;
+			point_data.point[i].z = random_float(); //  * 2.0f - 1.0f;
+			point_data.point[i].w = 0.0f;
+		} while (length(point_data.point[i]) > 1.0f);
+
+		point_data.point[i] = normalize(point_data.point[i]);
+	}
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		point_data.random_vectors[i].x = random_float();
+		point_data.random_vectors[i].y = random_float();
+		point_data.random_vectors[i].z = random_float();
+		point_data.random_vectors[i].w = random_float();
+	}
+
+	glGenBuffers(1, &points_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
+
+
 	glGenTextures(3, fbo_textures);
 
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, 2048, 2048);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, shadowMapWidth, shadowMapHeight);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, 2048, 2048);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, shadowMapWidth, shadowMapHeight);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -228,6 +236,7 @@ void display_func(void)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+
 	// Assign the depth buffer texture to texture channel 0
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
@@ -243,8 +252,9 @@ void display_func(void)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
-	glClearDepth(1.0f);
+	const GLfloat background_colour[] = { 1.0f, 0.5f, 0.0f, 0.0f };
+	static const GLfloat one = 1.0f;
+
 	glEnable(GL_DEPTH_TEST);
 
 
@@ -293,7 +303,9 @@ void display_func(void)
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glClearBufferfv(GL_DEPTH, 0, &one);
+
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
 	glEnable(GL_CULL_FACE);
@@ -326,7 +338,11 @@ void display_func(void)
 	
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glClearBufferfv(GL_COLOR, 0, background_colour);
+	glClearBufferfv(GL_COLOR, 1, background_colour);
+	glClearBufferfv(GL_DEPTH, 0, &one);
+
 	glViewport(0, 0, win_x, win_y);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
 
@@ -337,13 +353,10 @@ void display_func(void)
 	glFlush();
 
 
-
-
-	glUseProgram(ssao.get_program());
-
-
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
 
+	ssao.use_program();
 
 	glUniform1f(uniforms.ssao.ssao_radius, ssao_radius* float(win_x) / 1000.0f);
 	glUniform1f(uniforms.ssao.ssao_level, show_ao ? (show_shading ? 0.3f : 1.0f) : 0.0f);
@@ -351,15 +364,13 @@ void display_func(void)
 	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
 	glUniform1ui(uniforms.ssao.point_count, point_count);
 
-
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
 
 	glGenVertexArrays(1, &quad_vao);
 
-	glDisable(GL_DEPTH_TEST);
 	glBindVertexArray(quad_vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -380,7 +391,9 @@ void display_func(void)
 
 	glDeleteFramebuffers(1, &render_fbo);
 	glDeleteTextures(3, fbo_textures);
+	glDeleteBuffers(1, &points_buffer);
 }
+
 
 void keyboard_func(unsigned char key, int x, int y)
 {

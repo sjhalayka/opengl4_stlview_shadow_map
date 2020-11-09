@@ -60,13 +60,8 @@ void shadeWithShadow()
 
     // Gamma correct
     FragColor = pow( FragColor, vec4(1.0 / 2.2) );
-
-    vec3 N_ = normalize(N);
-
-    normal_depth = vec4(N_, V.z);
-
-
-
+ 
+    normal_depth = vec4(normalize(N), V.z);
 }
 
 subroutine (RenderPassType)

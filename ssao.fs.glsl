@@ -15,8 +15,6 @@ uniform bool weight_by_angle = true;
 uniform uint point_count = 8;
 uniform bool randomize_points = true;
 
-uniform vec4 background_colour;
-
 // Uniform block containing up to 256 random directions (x,y,z,0)
 // and 256 more completely random vectors
 layout (binding = 0, std140) uniform SAMPLE_POINTS
@@ -27,9 +25,6 @@ layout (binding = 0, std140) uniform SAMPLE_POINTS
 
 void main(void)
 {
-    colour = vec4(0.0, 0.5, 1.0, 1.0);
-    return;
-
     // Get texture position from gl_FragCoord
     vec2 P = gl_FragCoord.xy / textureSize(sNormalDepth, 0);
     // ND = normal and depth
@@ -40,8 +35,8 @@ void main(void)
     
     if(my_depth <= 1.0)
     {
-        colour = textureLod(sColor, P, 0);
-        return;
+      colour = textureLod(sColor, P, 0);
+      return;
     }
 
 
