@@ -352,29 +352,29 @@ void display_func(void)
 
 	glFlush();
 
-	 
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
 
-	//ssao.use_program();
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
 
-	//glUniform1f(uniforms.ssao.ssao_radius, ssao_radius* float(win_x) / 1000.0f);
-	//glUniform1f(uniforms.ssao.ssao_level, show_ao ? (show_shading ? 0.3f : 1.0f) : 0.0f);
-	//glUniform1i(uniforms.ssao.weight_by_angle, weight_by_angle ? 1 : 0);
-	//glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
-	//glUniform1ui(uniforms.ssao.point_count, point_count);
+	ssao.use_program();
 
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
+	glUniform1f(uniforms.ssao.ssao_radius, ssao_radius* float(win_x) / 1000.0f);
+	glUniform1f(uniforms.ssao.ssao_level, show_ao ? (show_shading ? 0.3f : 1.0f) : 0.0f);
+	glUniform1i(uniforms.ssao.weight_by_angle, weight_by_angle ? 1 : 0);
+	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
+	glUniform1ui(uniforms.ssao.point_count, point_count);
 
-	//glGenVertexArrays(1, &quad_vao);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
 
-	//glBindVertexArray(quad_vao);
-	//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glGenVertexArrays(1, &quad_vao);
 
-	//glDeleteVertexArrays(1, &quad_vao);
+	glBindVertexArray(quad_vao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDeleteVertexArrays(1, &quad_vao);
 
 
 
