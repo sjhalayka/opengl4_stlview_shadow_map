@@ -10,7 +10,7 @@
 uv_camera::uv_camera(void)
 {
 	u = v = 0;
-	w = 5;
+	w = 10;
 	fov = 45.0f;
 	near_plane = 0.0001f;
 	far_plane = 1000.0f;

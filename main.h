@@ -18,13 +18,22 @@ using namespace glm;
 #include <GL/glut.h>
 #pragma comment(lib, "glew32")
 
+
 #include <random>
-#include <vector>
-#include <string>
-#include <sstream>
 #include <ctime>
 using namespace std;
-	
+
+
+#include <vector>
+using std::vector;
+
+#include <string>
+using std::string;
+
+#include <sstream>
+using std::ostringstream;
+using std::istringstream;
+
 
 void idle_func(void);
 bool init_opengl(const int &width, const int &height);
@@ -91,23 +100,55 @@ struct
 	} ssao;
 } uniforms;
 
+bool  show_shading;
+bool  show_ao;
+float ssao_level;
+float ssao_radius;
+bool  weight_by_angle;
+bool randomize_points;
+unsigned int point_count;
 
-bool  show_shading = true;
-bool  show_ao = true;
-float ssao_level = 1.0f;
-float ssao_radius = 0.05f;
-bool  weight_by_angle = true;
-bool randomize_points = true;
-unsigned int point_count = 50;
 
-
-GLuint      points_buffer = 0;
 
 struct SAMPLE_POINTS
 {
 	vec4 point[256];
 	vec4 random_vectors[256];
 };
+
+GLuint      points_buffer = 0;
+
+int shadowMapWidth = 2048;
+int shadowMapHeight = 2048;
+mat4 lightPV, shadowBias;
+
+GLuint      render_fbo = 0;
+GLuint      fbo_textures[3] = { 0, 0, 0 };
+GLuint      quad_vao = 0;
+
+
+
+
+
+
+
+
+static unsigned int seed = 0x13371337;
+
+static inline float random_float()
+{
+	float res;
+	unsigned int tmp;
+
+	seed *= 16807;
+
+	tmp = seed ^ (seed >> 4) ^ (seed << 15);
+
+	*((unsigned int*)&res) = (tmp >> 9) | 0x3F800000;
+
+	return (res - 1.0f);
+}
+
 
 
 

@@ -111,12 +111,92 @@ bool init_opengl(const int &width, const int &height)
 	uniforms.ssao.randomize_points = glGetUniformLocation(ssao.get_program(), "randomize_points");
 	uniforms.ssao.point_count = glGetUniformLocation(ssao.get_program(), "point_count");
 
+	ssao_level = 1.0f;
+	ssao_radius = 0.05f;
+	show_shading = true;
+	show_ao = true;
+	weight_by_angle = true;
+	randomize_points = true;
+	point_count = 256;
 
 
 
 
+	mt19937 generator(static_cast<long unsigned int>(1234567890));
+	uniform_real_distribution<float> distribution(0, 1);
+
+	SAMPLE_POINTS point_data;
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		do
+		{
+			point_data.point[i].x = distribution(generator) * 2.0f - 1.0f;
+			point_data.point[i].y = distribution(generator) * 2.0f - 1.0f;
+			point_data.point[i].z = distribution(generator); //  * 2.0f - 1.0f;
+			point_data.point[i].w = 0.0f;
+		} while (length(point_data.point[i]) > 1.0f);
+
+		point_data.point[i] = normalize(point_data.point[i]);
+	}
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		point_data.random_vectors[i].x = distribution(generator);
+		point_data.random_vectors[i].y = distribution(generator);
+		point_data.random_vectors[i].z = distribution(generator);
+		point_data.random_vectors[i].w = distribution(generator);
+	}
+
+	glGenBuffers(1, &points_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
 
 
+
+	glGenTextures(3, fbo_textures);
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, shadowMapWidth, shadowMapHeight);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, shadowMapWidth, shadowMapHeight);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
+	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
+
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+
+
+
+	glGenFramebuffers(1, &render_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbo_textures[0], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbo_textures[1], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbo_textures[2], 0);
+
+	static const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
+	glDrawBuffers(2, draw_buffers);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 
 
@@ -157,109 +237,15 @@ void display_func(void)
 
 	GLuint pass1Index, pass2Index;
 
-	int shadowMapWidth = 2048;
-	int shadowMapHeight = 2048;
-	mat4 lightPV, shadowBias;
+	
 
-	GLuint      render_fbo = 0;
-	GLuint      fbo_textures[3] = { 0, 0, 0 };
-	GLuint      quad_vao = 0;
-
-	GLuint      points_buffer = 0;
-
-	mt19937 generator(static_cast<long unsigned int>(1234567890));
-	uniform_real_distribution<float> distribution(0, 1);
-
-	SAMPLE_POINTS point_data;
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		do
-		{
-			point_data.point[i].x = distribution(generator) * 2.0f - 1.0f;
-			point_data.point[i].y = distribution(generator) * 2.0f - 1.0f;
-			point_data.point[i].z = distribution(generator); //  * 2.0f - 1.0f;
-			point_data.point[i].w = 0.0f;
-		} while (length(point_data.point[i]) > 1.0f);
-
-		point_data.point[i] = normalize(point_data.point[i]);
-	}
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		point_data.random_vectors[i].x = distribution(generator);
-		point_data.random_vectors[i].y = distribution(generator);
-		point_data.random_vectors[i].z = distribution(generator);
-		point_data.random_vectors[i].w = distribution(generator);
-	}
-
-	glGenBuffers(1, &points_buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
-
-
-
-
-	glGenFramebuffers(1, &render_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-	glGenTextures(3, fbo_textures);
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
-	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbo_textures[0], 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbo_textures[1], 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbo_textures[2], 0);
-
-	static const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-
-	glDrawBuffers(2, draw_buffers);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
 
 
 	const GLfloat background_colour[] = { 1.0f, 0.5f, 0.0f, 0.0f };
 	static const GLfloat one = 1.0f;
 
-	
+
 
 
 	GLuint programHandle = shadow_map.get_program();
@@ -272,7 +258,8 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	vec3 lightPos = normalize(main_camera.eye)*5.0f;// vec3(10.0f, 10.0f, 10.0f);  // World coord
+//	vec3 lightPos = normalize(main_camera.eye) * 5.0f;
+	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
@@ -311,7 +298,7 @@ void display_func(void)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	draw_meshes(shadow_map.get_program());
-	glFlush();
+//	glFlush();
 
 
 
@@ -329,11 +316,11 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
-	
+
 	lp = view * vec4(lightPos, 1.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
-	
-	
+
+
 
 
 	glClearBufferfv(GL_COLOR, 0, background_colour);
@@ -348,13 +335,13 @@ void display_func(void)
 	draw_meshes(shadow_map.get_program());
 
 
-	glFlush();
+//	glFlush();
 
 
 
 
-	
 	/*
+	
 	vector<unsigned char> output_pixels(2048 * 2048 * 4);
 
 	glReadBuffer(GL_COLOR_ATTACHMENT1);
@@ -377,7 +364,7 @@ void display_func(void)
 	unsigned char  imagedescriptor = 0;
 	vector<char> idstring;
 
-	
+
 
 	// Write Targa TGA file to disk.
 	ofstream out("attachment.tga", ios::binary);
@@ -406,10 +393,8 @@ void display_func(void)
 	out.close();
 
 	exit(1);
-*/
 
-
-	
+	*/
 
 
 
@@ -424,7 +409,7 @@ void display_func(void)
 
 	ssao.use_program();
 
-	glUniform1f(uniforms.ssao.ssao_radius, ssao_radius* float(win_x) / 1000.0f);
+	glUniform1f(uniforms.ssao.ssao_radius, ssao_radius * float(win_x) / 1000.0f);
 	glUniform1f(uniforms.ssao.ssao_level, show_ao ? (show_shading ? 0.3f : 1.0f) : 0.0f);
 	glUniform1i(uniforms.ssao.weight_by_angle, weight_by_angle ? 1 : 0);
 	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
@@ -443,6 +428,12 @@ void display_func(void)
 	glDeleteVertexArrays(1, &quad_vao);
 
 
+	glViewport(0, 0, win_x, win_y);
+
+
+
+
+
 
 
 
@@ -452,9 +443,6 @@ void display_func(void)
 	glFlush();
 	glutSwapBuffers();
 
-	glDeleteFramebuffers(1, &render_fbo);
-	glDeleteTextures(3, fbo_textures);
-	glDeleteBuffers(1, &points_buffer);
 }
 
 

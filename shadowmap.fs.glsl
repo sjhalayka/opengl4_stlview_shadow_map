@@ -59,7 +59,7 @@ void shadeWithShadow()
     FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);
 
     // Gamma correct
-    FragColor = pow( FragColor, vec4(1.0 / 2.2) );
+    //FragColor = pow( FragColor, vec4(1.0 / 2.2) );
  
     normal_depth = vec4(normalize(N), V.z);
 }

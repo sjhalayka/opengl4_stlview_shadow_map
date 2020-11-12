@@ -10,9 +10,9 @@ layout (location = 0) out vec4 colour;
 // Various uniforms controling SSAO effect
 uniform float ssao_level = 1.0;
 uniform float object_level = 1.0;
-uniform float ssao_radius = 5.0;
+uniform float ssao_radius = 0.05;
 uniform bool weight_by_angle = true;
-uniform uint point_count = 8;
+uniform uint point_count = 10;
 uniform bool randomize_points = true;
 
 // Uniform block containing up to 256 random directions (x,y,z,0)
@@ -29,17 +29,15 @@ void main(void)
     vec2 P = gl_FragCoord.xy / textureSize(sNormalDepth, 0);
     // ND = normal and depth
     vec4 ND = textureLod(sNormalDepth, P, 0);
-
-
     // Extract normal and depth
     vec3 N = ND.xyz;
     float my_depth = ND.w;
     
-//    if(my_depth <= 1.0)
-//    {
+    if(my_depth <= 1.0)
+    {
       colour = textureLod(sColor, P, 0);
       return;
-//    }
+    }
 
 
     // Local temporary variables
