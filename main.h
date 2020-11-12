@@ -92,13 +92,13 @@ struct
 } uniforms;
 
 
-bool  show_shading;
-bool  show_ao;
-float ssao_level;
-float ssao_radius;
-bool  weight_by_angle;
-bool randomize_points;
-unsigned int point_count;
+bool  show_shading = true;
+bool  show_ao = true;
+float ssao_level = 1.0f;
+float ssao_radius = 0.05f;
+bool  weight_by_angle = true;
+bool randomize_points = true;
+unsigned int point_count = 50;
 
 
 GLuint      points_buffer = 0;

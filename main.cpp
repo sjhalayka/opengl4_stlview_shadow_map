@@ -111,13 +111,7 @@ bool init_opengl(const int &width, const int &height)
 	uniforms.ssao.randomize_points = glGetUniformLocation(ssao.get_program(), "randomize_points");
 	uniforms.ssao.point_count = glGetUniformLocation(ssao.get_program(), "point_count");
 
-	ssao_level = 1.0f;
-	ssao_radius = 0.05f;
-	show_shading = true;
-	show_ao = true;
-	weight_by_angle = true;
-	randomize_points = true;
-	point_count = 50;
+
 
 
 
@@ -455,17 +449,12 @@ void display_func(void)
 
 
 
-
-
-
 	glFlush();
 	glutSwapBuffers();
 
-
-
 	glDeleteFramebuffers(1, &render_fbo);
 	glDeleteTextures(3, fbo_textures);
-//	glDeleteBuffers(1, &points_buffer);
+	glDeleteBuffers(1, &points_buffer);
 }
 
 
