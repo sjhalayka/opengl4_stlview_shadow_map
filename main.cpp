@@ -163,8 +163,8 @@ void display_func(void)
 
 	GLuint pass1Index, pass2Index;
 
-	int shadowMapWidth = 8192;
-	int shadowMapHeight = 8192;
+	int shadowMapWidth = 2048;
+	int shadowMapHeight = 2048;
 	mat4 lightPV, shadowBias;
 
 	GLuint      render_fbo = 0;
@@ -172,34 +172,14 @@ void display_func(void)
 	GLuint      quad_vao = 0;
 	GLuint      points_buffer = 0;
 
-	SAMPLE_POINTS point_data;
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		do
-		{
-			point_data.point[i].x = random_float() * 2.0f - 1.0f;
-			point_data.point[i].y = random_float() * 2.0f - 1.0f;
-			point_data.point[i].z = random_float(); //  * 2.0f - 1.0f;
-			point_data.point[i].w = 0.0f;
-		} while (length(point_data.point[i]) > 1.0f);
-
-		point_data.point[i] = normalize(point_data.point[i]);
-	}
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		point_data.random_vectors[i].x = random_float();
-		point_data.random_vectors[i].y = random_float();
-		point_data.random_vectors[i].z = random_float();
-		point_data.random_vectors[i].w = random_float();
-	}
-
-	glGenBuffers(1, &points_buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
 
 
+
+
+
+
+	glGenFramebuffers(1, &render_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	glGenTextures(3, fbo_textures);
 
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
@@ -235,6 +215,47 @@ void display_func(void)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+
+
+
+
+
+
+
+
+
+
+	SAMPLE_POINTS point_data;
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		do
+		{
+			point_data.point[i].x = random_float() * 2.0f - 1.0f;
+			point_data.point[i].y = random_float() * 2.0f - 1.0f;
+			point_data.point[i].z = random_float(); //  * 2.0f - 1.0f;
+			point_data.point[i].w = 0.0f;
+		} while (length(point_data.point[i]) > 1.0f);
+
+		point_data.point[i] = normalize(point_data.point[i]);
+	}
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		point_data.random_vectors[i].x = random_float();
+		point_data.random_vectors[i].y = random_float();
+		point_data.random_vectors[i].z = random_float();
+		point_data.random_vectors[i].w = random_float();
+	}
+
+	glGenBuffers(1, &points_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
+
+
 
 
 	// Assign the depth buffer texture to texture channel 0
@@ -242,28 +263,21 @@ void display_func(void)
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
 
 	// Create and set up the FBO
-	glGenFramebuffers(1, &render_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_TEXTURE_2D, fbo_textures[2], 0);
 
 
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
 
 
 	const GLfloat background_colour[] = { 1.0f, 0.5f, 0.0f, 0.0f };
 	static const GLfloat one = 1.0f;
 
-	glEnable(GL_DEPTH_TEST);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+	
 
 
-	
-	
-	
-	
-	
-	
 	GLuint programHandle = shadow_map.get_program();
 	pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
 	pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
@@ -300,10 +314,8 @@ void display_func(void)
 	vec4 lp = view * vec4(lightPos, 1.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
 
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-
+	glClearBufferfv(GL_COLOR, 0, background_colour);
+	glClearBufferfv(GL_COLOR, 1, background_colour);
 	glClearBufferfv(GL_DEPTH, 0, &one);
 
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
@@ -337,7 +349,7 @@ void display_func(void)
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
 	
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 
 	glClearBufferfv(GL_COLOR, 0, background_colour);
 	glClearBufferfv(GL_COLOR, 1, background_colour);
@@ -353,7 +365,80 @@ void display_func(void)
 	glFlush();
 
 
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+
+
+	/*
+
+	vector<unsigned char> output_pixels(2048 * 2048 * 4);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glReadPixels(0, 0, 2048, 2048, GL_RGBA, GL_UNSIGNED_BYTE, &output_pixels[0]);
+
+
+	// Set up Targa TGA image data.
+	unsigned char  idlength = 0;
+	unsigned char  colourmaptype = 0;
+	unsigned char  datatypecode = 2;
+	unsigned short int colourmaporigin = 0;
+	unsigned short int colourmaplength = 0;
+	unsigned char  colourmapdepth = 0;
+	unsigned short int x_origin = 0;
+	unsigned short int y_origin = 0;
+
+	unsigned short int px = 2048;
+	unsigned short int py = 2048;
+	unsigned char  bitsperpixel = 32;
+	unsigned char  imagedescriptor = 0;
+	vector<char> idstring;
+
+	
+
+	// Write Targa TGA file to disk.
+	ofstream out("attachment.tga", ios::binary);
+
+	if (!out.is_open())
+	{
+		cout << "Failed to open TGA file for writing: attachment.tga" << endl;
+		return;
+	}
+
+	out.write(reinterpret_cast<char*>(&idlength), 1);
+	out.write(reinterpret_cast<char*>(&colourmaptype), 1);
+	out.write(reinterpret_cast<char*>(&datatypecode), 1);
+	out.write(reinterpret_cast<char*>(&colourmaporigin), 2);
+	out.write(reinterpret_cast<char*>(&colourmaplength), 2);
+	out.write(reinterpret_cast<char*>(&colourmapdepth), 1);
+	out.write(reinterpret_cast<char*>(&x_origin), 2);
+	out.write(reinterpret_cast<char*>(&y_origin), 2);
+	out.write(reinterpret_cast<char*>(&px), 2);
+	out.write(reinterpret_cast<char*>(&py), 2);
+	out.write(reinterpret_cast<char*>(&bitsperpixel), 1);
+	out.write(reinterpret_cast<char*>(&imagedescriptor), 1);
+
+	out.write(reinterpret_cast<char*>(&output_pixels[0]), 2048 * 2048 * 4 * sizeof(unsigned char));
+
+	out.close();
+
+	exit(1);
+
+
+
+	*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
 
 	ssao.use_program();
@@ -364,9 +449,9 @@ void display_func(void)
 	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
 	glUniform1ui(uniforms.ssao.point_count, point_count);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
 
 	glGenVertexArrays(1, &quad_vao);
