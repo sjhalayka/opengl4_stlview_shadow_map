@@ -259,8 +259,8 @@ void display_func(void)
 
 
 	// Assign the depth buffer texture to texture channel 0
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
 
 	// Create and set up the FBO
 
@@ -367,8 +367,8 @@ void display_func(void)
 
 
 
+	
 	/*
-
 	vector<unsigned char> output_pixels(2048 * 2048 * 4);
 
 	glReadBuffer(GL_COLOR_ATTACHMENT1);
@@ -420,10 +420,10 @@ void display_func(void)
 	out.close();
 
 	exit(1);
+*/
 
 
-
-	*/
+	
 
 
 
@@ -449,9 +449,9 @@ void display_func(void)
 	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
 	glUniform1ui(uniforms.ssao.point_count, point_count);
 
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
-	glActiveTexture(GL_TEXTURE2);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
 
 	glGenVertexArrays(1, &quad_vao);
