@@ -6,10 +6,6 @@ in vec3 Position;
 in vec3 Normal;
 in vec4 ShadowCoord;
 
-in vec3 N;
-in vec3 V;
-
-
     uniform vec4 LightPosition; // in view space
     
     vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
@@ -19,7 +15,6 @@ in vec3 V;
     float MaterialShininess = 1000.0;
 
 layout (location = 0) out vec4 FragColor;
-layout (location = 1) out vec4 normal_depth;
 
 vec3 phongModelDiffAndSpec()
 {
@@ -38,7 +33,15 @@ vec3 phongModelDiffAndSpec()
         spec.z = pow( max( dot(r,v), 0.0 ), MaterialShininess );
      }
 
-    return diffuse + spec;
+         vec3 n2 = Normal;
+    vec3 s2 = normalize(vec3(-LightPosition) - Position);
+    vec3 v2 = normalize(-Position.xyz);
+    vec3 r2 = reflect( -s2, n2 );
+    float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
+    vec3 diffuse2 = LightIntensity * MaterialKd * sDotN2;
+
+
+    return diffuse + diffuse2 + spec;
 }
 
 subroutine void RenderPassType();
@@ -59,9 +62,7 @@ void shadeWithShadow()
     FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);
 
     // Gamma correct
-    //FragColor = pow( FragColor, vec4(1.0 / 2.2) );
- 
-    normal_depth = vec4(normalize(N), V.z);
+    FragColor = pow( FragColor, vec4(1.0 / 2.2) );
 }
 
 subroutine (RenderPassType)

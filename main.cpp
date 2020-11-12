@@ -73,7 +73,7 @@ bool init_opengl(const int &width, const int &height)
 	if(win_y < 1)
 		win_y = 1;
 
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Binary Stereo Lithography file viewer");
@@ -98,105 +98,10 @@ bool init_opengl(const int &width, const int &height)
 		return false;
 	}
 
-	if (false == ssao.init("ssao.vs.glsl", "ssao.fs.glsl"))
-	{
-		cout << "Could not load ssao shader" << endl;
-		return false;
-	}
-
-	uniforms.ssao.ssao_radius = glGetUniformLocation(ssao.get_program(), "ssao_radius");
-	uniforms.ssao.ssao_level = glGetUniformLocation(ssao.get_program(), "ssao_level");
-	uniforms.ssao.object_level = glGetUniformLocation(ssao.get_program(), "object_level");
-	uniforms.ssao.weight_by_angle = glGetUniformLocation(ssao.get_program(), "weight_by_angle");
-	uniforms.ssao.randomize_points = glGetUniformLocation(ssao.get_program(), "randomize_points");
-	uniforms.ssao.point_count = glGetUniformLocation(ssao.get_program(), "point_count");
-
-	ssao_level = 1.0f;
-	ssao_radius = 0.05f;
-	show_shading = true;
-	show_ao = true;
-	weight_by_angle = true;
-	randomize_points = true;
-	point_count = 256;
 
 
 
 
-	mt19937 generator(static_cast<long unsigned int>(1234567890));
-	uniform_real_distribution<float> distribution(0, 1);
-
-	SAMPLE_POINTS point_data;
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		do
-		{
-			point_data.point[i].x = distribution(generator) * 2.0f - 1.0f;
-			point_data.point[i].y = distribution(generator) * 2.0f - 1.0f;
-			point_data.point[i].z = distribution(generator); //  * 2.0f - 1.0f;
-			point_data.point[i].w = 0.0f;
-		} while (length(point_data.point[i]) > 1.0f);
-
-		point_data.point[i] = normalize(point_data.point[i]);
-	}
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		point_data.random_vectors[i].x = distribution(generator);
-		point_data.random_vectors[i].y = distribution(generator);
-		point_data.random_vectors[i].z = distribution(generator);
-		point_data.random_vectors[i].w = distribution(generator);
-	}
-
-	glGenBuffers(1, &points_buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
-
-
-
-	glGenTextures(3, fbo_textures);
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
-	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
-
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-
-
-
-
-	glGenFramebuffers(1, &render_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbo_textures[0], 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fbo_textures[1], 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, fbo_textures[2], 0);
-
-	static const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-
-	glDrawBuffers(2, draw_buffers);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
 
 
 
@@ -235,17 +140,53 @@ void display_func(void)
 {
 	Frustum lightFrustum;
 
-	GLuint pass1Index, pass2Index;
+	GLuint shadowFBO, pass1Index, pass2Index;
 
-	
+	int shadowMapWidth = 8192;
+	int shadowMapHeight = 8192;
 
-	
+	mat4 lightPV, shadowBias;
+
+	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
+	// The depth buffer texture
+	GLuint depthTex;
+	glGenTextures(1, &depthTex);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+	// Assign the depth buffer texture to texture channel 0
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+
+	// Create and set up the FBO
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, depthTex, 0);
+
+	GLenum drawBuffers[] = { GL_NONE };
+	glDrawBuffers(1, drawBuffers);
+
+	GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (result == GL_FRAMEBUFFER_COMPLETE) {
+		printf("Framebuffer is complete.\n");
+	}
+	else {
+		printf("Framebuffer is not complete.\n");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	const GLfloat background_colour[] = { 1.0f, 0.5f, 0.0f, 0.0f };
-	static const GLfloat one = 1.0f;
-
-
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
 
 
 	GLuint programHandle = shadow_map.get_program();
@@ -258,7 +199,7 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-//	vec3 lightPos = normalize(main_camera.eye) * 5.0f;
+	float c = 1.65f;
 	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -285,10 +226,10 @@ void display_func(void)
 	vec4 lp = view * vec4(lightPos, 1.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
 
-	glClearBufferfv(GL_COLOR, 0, background_colour);
-	glClearBufferfv(GL_COLOR, 1, background_colour);
-	glClearBufferfv(GL_DEPTH, 0, &one);
 
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
 	glEnable(GL_CULL_FACE);
@@ -296,9 +237,8 @@ void display_func(void)
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5f, 10.0f);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	draw_meshes(shadow_map.get_program());
-//	glFlush();
+	glFlush();
 
 
 
@@ -316,135 +256,26 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
-
+	
 	lp = view * vec4(lightPos, 1.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
-
-
-
-
-	glClearBufferfv(GL_COLOR, 0, background_colour);
-	glClearBufferfv(GL_COLOR, 1, background_colour);
-	glClearBufferfv(GL_DEPTH, 0, &one);
-
+	
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, win_x, win_y);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
 
 	glCullFace(GL_BACK);
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	draw_meshes(shadow_map.get_program());
-
-
-//	glFlush();
-
-
-
-
-	/*
-	
-	vector<unsigned char> output_pixels(2048 * 2048 * 4);
-
-	glReadBuffer(GL_COLOR_ATTACHMENT1);
-	glReadPixels(0, 0, 2048, 2048, GL_RGBA, GL_UNSIGNED_BYTE, &output_pixels[0]);
-
-
-	// Set up Targa TGA image data.
-	unsigned char  idlength = 0;
-	unsigned char  colourmaptype = 0;
-	unsigned char  datatypecode = 2;
-	unsigned short int colourmaporigin = 0;
-	unsigned short int colourmaplength = 0;
-	unsigned char  colourmapdepth = 0;
-	unsigned short int x_origin = 0;
-	unsigned short int y_origin = 0;
-
-	unsigned short int px = 2048;
-	unsigned short int py = 2048;
-	unsigned char  bitsperpixel = 32;
-	unsigned char  imagedescriptor = 0;
-	vector<char> idstring;
-
-
-
-	// Write Targa TGA file to disk.
-	ofstream out("attachment.tga", ios::binary);
-
-	if (!out.is_open())
-	{
-		cout << "Failed to open TGA file for writing: attachment.tga" << endl;
-		return;
-	}
-
-	out.write(reinterpret_cast<char*>(&idlength), 1);
-	out.write(reinterpret_cast<char*>(&colourmaptype), 1);
-	out.write(reinterpret_cast<char*>(&datatypecode), 1);
-	out.write(reinterpret_cast<char*>(&colourmaporigin), 2);
-	out.write(reinterpret_cast<char*>(&colourmaplength), 2);
-	out.write(reinterpret_cast<char*>(&colourmapdepth), 1);
-	out.write(reinterpret_cast<char*>(&x_origin), 2);
-	out.write(reinterpret_cast<char*>(&y_origin), 2);
-	out.write(reinterpret_cast<char*>(&px), 2);
-	out.write(reinterpret_cast<char*>(&py), 2);
-	out.write(reinterpret_cast<char*>(&bitsperpixel), 1);
-	out.write(reinterpret_cast<char*>(&imagedescriptor), 1);
-
-	out.write(reinterpret_cast<char*>(&output_pixels[0]), 2048 * 2048 * 4 * sizeof(unsigned char));
-
-	out.close();
-
-	exit(1);
-
-	*/
-
-
-
-
-
-
-
-
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
-
-	ssao.use_program();
-
-	glUniform1f(uniforms.ssao.ssao_radius, ssao_radius * float(win_x) / 1000.0f);
-	glUniform1f(uniforms.ssao.ssao_level, show_ao ? (show_shading ? 0.3f : 1.0f) : 0.0f);
-	glUniform1i(uniforms.ssao.weight_by_angle, weight_by_angle ? 1 : 0);
-	glUniform1i(uniforms.ssao.randomize_points, randomize_points ? 1 : 0);
-	glUniform1ui(uniforms.ssao.point_count, point_count);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[0]); // colour
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, fbo_textures[1]); // normal + depth
-
-	glGenVertexArrays(1, &quad_vao);
-
-	glBindVertexArray(quad_vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDeleteVertexArrays(1, &quad_vao);
-
-
-	glViewport(0, 0, win_x, win_y);
-
-
-
-
-
-
-
-
-
 
 
 	glFlush();
 	glutSwapBuffers();
 
+	glDeleteTextures(1, &depthTex);
+	glDeleteFramebuffers(1, &shadowFBO);
 }
-
 
 void keyboard_func(unsigned char key, int x, int y)
 {

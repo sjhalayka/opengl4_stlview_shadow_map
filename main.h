@@ -19,10 +19,6 @@ using namespace glm;
 #pragma comment(lib, "glew32")
 
 
-#include <random>
-#include <ctime>
-using namespace std;
-
 
 #include <vector>
 using std::vector;
@@ -82,72 +78,13 @@ int mouse_y = 0;
 vec3 ray;
 
 
-
-
-
-vertex_fragment_shader ssao;
-
-struct
-{
-	struct
-	{
-		GLint           ssao_level;
-		GLint           object_level;
-		GLint           ssao_radius;
-		GLint           weight_by_angle;
-		GLint           randomize_points;
-		GLint           point_count;
-	} ssao;
-} uniforms;
-
-bool  show_shading;
-bool  show_ao;
-float ssao_level;
-float ssao_radius;
-bool  weight_by_angle;
-bool randomize_points;
-unsigned int point_count;
-
-
-
-struct SAMPLE_POINTS
-{
-	vec4 point[256];
-	vec4 random_vectors[256];
-};
-
-GLuint      points_buffer = 0;
-
-int shadowMapWidth = 2048;
-int shadowMapHeight = 2048;
-mat4 lightPV, shadowBias;
-
 GLuint      render_fbo = 0;
 GLuint      fbo_textures[3] = { 0, 0, 0 };
 GLuint      quad_vao = 0;
+GLuint      points_buffer = 0;
 
 
 
-
-
-
-
-
-static unsigned int seed = 0x13371337;
-
-static inline float random_float()
-{
-	float res;
-	unsigned int tmp;
-
-	seed *= 16807;
-
-	tmp = seed ^ (seed >> 4) ^ (seed << 15);
-
-	*((unsigned int*)&res) = (tmp >> 9) | 0x3F800000;
-
-	return (res - 1.0f);
-}
 
 
 
