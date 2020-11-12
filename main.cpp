@@ -117,7 +117,7 @@ bool init_opengl(const int &width, const int &height)
 	show_ao = true;
 	weight_by_angle = true;
 	randomize_points = true;
-	point_count = 10;
+	point_count = 50;
 
 
 
@@ -170,10 +170,38 @@ void display_func(void)
 	GLuint      render_fbo = 0;
 	GLuint      fbo_textures[3] = { 0, 0, 0 };
 	GLuint      quad_vao = 0;
+
 	GLuint      points_buffer = 0;
 
+	mt19937 generator(static_cast<long unsigned int>(1234567890));
+	uniform_real_distribution<float> distribution(0, 1);
 
+	SAMPLE_POINTS point_data;
 
+	for (size_t i = 0; i < 256; i++)
+	{
+		do
+		{
+			point_data.point[i].x = distribution(generator) * 2.0f - 1.0f;
+			point_data.point[i].y = distribution(generator) * 2.0f - 1.0f;
+			point_data.point[i].z = distribution(generator); //  * 2.0f - 1.0f;
+			point_data.point[i].w = 0.0f;
+		} while (length(point_data.point[i]) > 1.0f);
+
+		point_data.point[i] = normalize(point_data.point[i]);
+	}
+
+	for (size_t i = 0; i < 256; i++)
+	{
+		point_data.random_vectors[i].x = distribution(generator);
+		point_data.random_vectors[i].y = distribution(generator);
+		point_data.random_vectors[i].z = distribution(generator);
+		point_data.random_vectors[i].w = distribution(generator);
+	}
+
+	glGenBuffers(1, &points_buffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
 
 
 
@@ -228,43 +256,6 @@ void display_func(void)
 
 
 
-	SAMPLE_POINTS point_data;
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		do
-		{
-			point_data.point[i].x = random_float() * 2.0f - 1.0f;
-			point_data.point[i].y = random_float() * 2.0f - 1.0f;
-			point_data.point[i].z = random_float(); //  * 2.0f - 1.0f;
-			point_data.point[i].w = 0.0f;
-		} while (length(point_data.point[i]) > 1.0f);
-
-		point_data.point[i] = normalize(point_data.point[i]);
-	}
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		point_data.random_vectors[i].x = random_float();
-		point_data.random_vectors[i].y = random_float();
-		point_data.random_vectors[i].z = random_float();
-		point_data.random_vectors[i].w = random_float();
-	}
-
-	glGenBuffers(1, &points_buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, points_buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(SAMPLE_POINTS), &point_data, GL_STATIC_DRAW);
-
-
-
-
-	// Assign the depth buffer texture to texture channel 0
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, fbo_textures[2]);
-
-	// Create and set up the FBO
-
-
 
 
 
@@ -287,7 +278,7 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
+	vec3 lightPos = normalize(main_camera.eye)*5.0f;// vec3(10.0f, 10.0f, 10.0f);  // World coord
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
@@ -434,11 +425,6 @@ void display_func(void)
 
 
 
-
-
-
-
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, points_buffer);
 
@@ -475,9 +461,11 @@ void display_func(void)
 	glFlush();
 	glutSwapBuffers();
 
+
+
 	glDeleteFramebuffers(1, &render_fbo);
 	glDeleteTextures(3, fbo_textures);
-	glDeleteBuffers(1, &points_buffer);
+//	glDeleteBuffers(1, &points_buffer);
 }
 
 

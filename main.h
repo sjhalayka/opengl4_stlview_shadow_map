@@ -18,18 +18,13 @@ using namespace glm;
 #include <GL/glut.h>
 #pragma comment(lib, "glew32")
 
-
-
+#include <random>
 #include <vector>
-using std::vector;
-
 #include <string>
-using std::string;
-
 #include <sstream>
-using std::ostringstream;
-using std::istringstream;
-
+#include <ctime>
+using namespace std;
+	
 
 void idle_func(void);
 bool init_opengl(const int &width, const int &height);
@@ -96,6 +91,7 @@ struct
 	} ssao;
 } uniforms;
 
+
 bool  show_shading;
 bool  show_ao;
 float ssao_level;
@@ -105,30 +101,13 @@ bool randomize_points;
 unsigned int point_count;
 
 
+GLuint      points_buffer = 0;
 
 struct SAMPLE_POINTS
 {
 	vec4 point[256];
 	vec4 random_vectors[256];
 };
-
-
-static unsigned int seed = 0x13371337;
-
-static inline float random_float()
-{
-	float res;
-	unsigned int tmp;
-
-	seed *= 16807;
-
-	tmp = seed ^ (seed >> 4) ^ (seed << 15);
-
-	*((unsigned int*)&res) = (tmp >> 9) | 0x3F800000;
-
-	return (res - 1.0f);
-}
-
 
 
 

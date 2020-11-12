@@ -35,11 +35,11 @@ void main(void)
     vec3 N = ND.xyz;
     float my_depth = ND.w;
     
-    if(my_depth <= 1.0)
-    {
+//    if(my_depth <= 1.0)
+//    {
       colour = textureLod(sColor, P, 0);
       return;
-    }
+//    }
 
 
     // Local temporary variables
