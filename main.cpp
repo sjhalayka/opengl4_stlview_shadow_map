@@ -274,7 +274,6 @@ void display_func(void)
 	const GLfloat background_colour[] = { 1.0f, 0.5f, 0.0f, 0.0f };
 	static const GLfloat one = 1.0f;
 
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	
 
 
@@ -325,6 +324,7 @@ void display_func(void)
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5f, 10.0f);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	draw_meshes(shadow_map.get_program());
 	glFlush();
 
@@ -349,7 +349,7 @@ void display_func(void)
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
 	
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+
 
 	glClearBufferfv(GL_COLOR, 0, background_colour);
 	glClearBufferfv(GL_COLOR, 1, background_colour);
@@ -359,6 +359,7 @@ void display_func(void)
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
 
 	glCullFace(GL_BACK);
+	glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 	draw_meshes(shadow_map.get_program());
 
 

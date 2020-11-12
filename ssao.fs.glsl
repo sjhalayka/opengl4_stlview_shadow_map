@@ -29,6 +29,8 @@ void main(void)
     vec2 P = gl_FragCoord.xy / textureSize(sNormalDepth, 0);
     // ND = normal and depth
     vec4 ND = textureLod(sNormalDepth, P, 0);
+
+
     // Extract normal and depth
     vec3 N = ND.xyz;
     float my_depth = ND.w;
