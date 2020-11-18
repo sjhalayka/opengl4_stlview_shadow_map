@@ -235,7 +235,7 @@ void display_func(void)
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
-//	glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 //	glCullFace(GL_FRONT);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5f, 10.0f);
