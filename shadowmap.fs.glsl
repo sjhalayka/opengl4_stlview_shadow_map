@@ -11,7 +11,7 @@ uniform vec4 LightPosition_Untransformed; // in world space
 
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
 vec3 MaterialKa = vec3(0.1, 0.1, 0.1);
-vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
+uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
 vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
 float MaterialShininess = 1000.0;
 

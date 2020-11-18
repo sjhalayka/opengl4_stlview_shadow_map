@@ -185,7 +185,7 @@ void display_func(void)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 
 
@@ -230,7 +230,6 @@ void display_func(void)
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
 
 
-
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
@@ -240,7 +239,13 @@ void display_func(void)
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5f, 10.0f);
 
-	draw_meshes(shadow_map.get_program());
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
+	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
+	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
 	glFlush();
 
 
@@ -265,6 +270,7 @@ void display_func(void)
 	lp_untransformed = vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
 
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -273,7 +279,12 @@ void display_func(void)
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	draw_meshes(shadow_map.get_program());
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
+	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
+	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
 	glFlush();
