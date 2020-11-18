@@ -7,7 +7,11 @@ in vec3 Normal;
 in vec4 ShadowCoord;
 
     uniform vec4 LightPosition; // in view space
-    
+    uniform vec4 LightPosition_Untransformed; // in world space
+
+
+
+//    uniform vec3 
     vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
     vec3 MaterialKa = vec3(0.1, 0.1, 0.1);
     vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
@@ -19,7 +23,7 @@ layout (location = 0) out vec4 FragColor;
 vec3 phongModelDiffAndSpec()
 {
     vec3 n = Normal;
-    vec3 s = normalize(vec3(LightPosition) - Position);
+    vec3 s = normalize(vec3(LightPosition.xyz) - Position);
     vec3 v = normalize(-Position.xyz);
     vec3 r = reflect( -s, n );
     float sDotN = max( dot(s,n), 0.0 );
@@ -31,9 +35,16 @@ vec3 phongModelDiffAndSpec()
         spec.x = pow( max( dot(r,v), 0.0 ), MaterialShininess );
         spec.y = pow( max( dot(r,v), 0.0 ), MaterialShininess );
         spec.z = pow( max( dot(r,v), 0.0 ), MaterialShininess );
-     }
+    }
 
-    return diffuse + spec;
+    vec3 n2 = Normal;
+    vec3 s2 = normalize(vec3(-LightPosition) - Position);
+    vec3 v2 = normalize(-Position.xyz);
+    vec3 r2 = reflect( -s2, n2 );
+    float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
+    vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
+
+    return diffuse + diffuse2 + spec;
 }
 
 subroutine void RenderPassType();
@@ -46,9 +57,32 @@ void shadeWithShadow()
 
     float shadow = 1.0;
 
-    if( ShadowCoord.z >= 0 ) {
+
+        
+
+    if( ShadowCoord.z >= 0.0 )
+    {
         shadow = textureProj(shadow_map, ShadowCoord);
+
+        vec3 n = normalize(Normal);
+        vec3 n2 = normalize(LightPosition.xyz);
+        float dp = dot(n, n2);
+
+        if(dp < 0.0)
+        {
+            shadow = 1.0;
+        }
+        else
+        {
+            if(shadow == 0.0)
+                shadow = 1.0 - dp;
+        }
     }
+
+
+
+    
+
 
     // If the fragment is in shadow, use ambient light only.
     FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);

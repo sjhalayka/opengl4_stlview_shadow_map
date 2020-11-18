@@ -18,21 +18,21 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(0.5f);	
+	game_piece_mesh.scale_mesh(3.0f);	
 
-	vec3 dir(0, 0, 1);
-	dir = normalize(dir);
+	//vec3 dir(0, 0, 1);
+	//dir = normalize(dir);
 
-	float yaw = 0.0f;
+	//float yaw = 0.0f;
 
-	if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
-		yaw = 0.0f;
-	else
-		yaw = atan2f(dir.x, dir.z);
+	//if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+	//	yaw = 0.0f;
+	//else
+	//	yaw = atan2f(dir.x, dir.z);
 
-	float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+	//float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
 
-	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
+//	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
 
 
 	
@@ -223,8 +223,11 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
 
-	vec4 lp = view * vec4(lightPos, 1.0f);
+	vec4 lp = view * vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
+
+	vec4 lp_untransformed = vec4(lightPos, 0.0f);
+	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
 
 
 
@@ -232,10 +235,10 @@ void display_func(void)
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+//	glEnable(GL_CULL_FACE);
+//	glCullFace(GL_FRONT);
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	//glPolygonOffset(2.5f, 10.0f);
+	glPolygonOffset(2.5f, 10.0f);
 
 	draw_meshes(shadow_map.get_program());
 	glFlush();
@@ -257,15 +260,18 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
 	
-	lp = view * vec4(lightPos, 1.0f);
+	lp = view * vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
-	
+	lp_untransformed = vec4(lightPos, 0.0f);
+	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
+
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, win_x, win_y);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
 
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	draw_meshes(shadow_map.get_program());
 
