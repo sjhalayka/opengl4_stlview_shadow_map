@@ -33,15 +33,7 @@ vec3 phongModelDiffAndSpec()
         spec.z = pow( max( dot(r,v), 0.0 ), MaterialShininess );
      }
 
-         vec3 n2 = Normal;
-    vec3 s2 = normalize(vec3(-LightPosition) - Position);
-    vec3 v2 = normalize(-Position.xyz);
-    vec3 r2 = reflect( -s2, n2 );
-    float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
-    vec3 diffuse2 = LightIntensity * MaterialKd * sDotN2;
-
-
-    return diffuse + diffuse2 + spec;
+    return diffuse + spec;
 }
 
 subroutine void RenderPassType();

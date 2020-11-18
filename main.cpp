@@ -235,7 +235,7 @@ void display_func(void)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(2.5f, 10.0f);
+	//glPolygonOffset(2.5f, 10.0f);
 
 	draw_meshes(shadow_map.get_program());
 	glFlush();
