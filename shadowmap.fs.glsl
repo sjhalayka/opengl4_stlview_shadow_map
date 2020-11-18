@@ -6,17 +6,14 @@ in vec3 Position;
 in vec3 Normal;
 in vec4 ShadowCoord;
 
-    uniform vec4 LightPosition; // in view space
-    uniform vec4 LightPosition_Untransformed; // in world space
+uniform vec4 LightPosition; // in view space
+uniform vec4 LightPosition_Untransformed; // in world space
 
-
-
-//    uniform vec3 
-    vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
-    vec3 MaterialKa = vec3(0.1, 0.1, 0.1);
-    vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
-    vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
-    float MaterialShininess = 1000.0;
+vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
+vec3 MaterialKa = vec3(0.1, 0.1, 0.1);
+vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
+vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
+float MaterialShininess = 1000.0;
 
 layout (location = 0) out vec4 FragColor;
 
@@ -57,9 +54,6 @@ void shadeWithShadow()
 
     float shadow = 1.0;
 
-
-        
-
     if( ShadowCoord.z >= 0.0 )
     {
         shadow = textureProj(shadow_map, ShadowCoord);
@@ -78,11 +72,6 @@ void shadeWithShadow()
                 shadow = 1.0 - dp;
         }
     }
-
-
-
-    
-
 
     // If the fragment is in shadow, use ambient light only.
     FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);
