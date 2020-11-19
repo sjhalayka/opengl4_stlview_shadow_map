@@ -10,14 +10,16 @@ uniform vec4 LightPosition; // in view space
 uniform vec4 LightPosition_Untransformed; // in world space
 
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
-vec3 MaterialKa = vec3(0.1, 0.1, 0.1);
+vec3 MaterialKa = vec3(0.0, 0.0, 0.0);
+
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
+
 vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
 float MaterialShininess = 1000.0;
 
 layout (location = 0) out vec4 FragColor;
 
-vec3 phongModelDiffAndSpec()
+vec3 phongModelDiffAndSpec(bool do_specular)
 {
     vec3 n = Normal;
     vec3 s = normalize(vec3(LightPosition.xyz) - Position);
@@ -41,7 +43,12 @@ vec3 phongModelDiffAndSpec()
     float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
     vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
 
-    return diffuse + diffuse2 + spec;
+    vec3 ret = diffuse + diffuse2;
+
+    if(do_specular)
+        ret = ret + spec;
+    
+    return ret;
 }
 
 subroutine void RenderPassType();
@@ -50,8 +57,6 @@ subroutine uniform RenderPassType RenderPass;
 subroutine (RenderPassType)
 void shadeWithShadow()
 {
-    vec3 diffAndSpec = phongModelDiffAndSpec();
-
     float shadow = 1.0;
 
     if( ShadowCoord.z >= 0.0 )
@@ -72,6 +77,13 @@ void shadeWithShadow()
                 shadow = 1.0 - dp;
         }
     }
+    
+    vec3 diffAndSpec;
+    
+    if(shadow == 1.0)
+        diffAndSpec = phongModelDiffAndSpec(true);
+    else
+        diffAndSpec = phongModelDiffAndSpec(false);
 
     // If the fragment is in shadow, use ambient light only.
     FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);

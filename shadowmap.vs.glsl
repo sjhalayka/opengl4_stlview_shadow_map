@@ -17,6 +17,6 @@ void main()
 {
     Position = (ModelViewMatrix * vec4(position,1.0)).xyz;
     Normal = normalize( NormalMatrix * normal );
-    ShadowCoord = ShadowMatrix * vec4(position,1.0);
-    gl_Position = MVP * vec4(position,1.0);
+    ShadowCoord = ShadowMatrix * vec4(position, 1.0);
+    gl_Position = MVP * vec4(position, 1.0);
 }
