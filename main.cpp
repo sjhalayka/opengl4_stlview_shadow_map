@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 		return 2;
 	}
 	
-	sphere_mesh.scale_mesh(2.0f);
+	sphere_mesh.scale_mesh(1.5f);
 
 	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("fractal.stl"))
 	{
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(3.0f);	
+	game_piece_mesh.scale_mesh(2.0f);	
 
 	//vec3 dir(0, 0, 1);
 	//dir = normalize(dir);
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
 	//float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
 
-//	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
+	//game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
 
 
 	
@@ -200,7 +200,11 @@ void display_func(void)
 	);
 
 	float c = 1.65f;
-	vec3 lightPos = vec3(10.0f, 10.0f, 10.0f);  // World coord
+	vec3 lightPos = main_camera.eye;// vec3(10.0f, 10.0f, 10.0f);  // World coord
+	lightPos = normalize(lightPos) * 10.0f;
+	lightPos = rotate_x(lightPos, glm::pi<float>() / 4.0f);
+	lightPos = rotate_y(lightPos, glm::pi<float>() / 4.0f);
+
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
