@@ -18,21 +18,21 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(2.0f);	
+	game_piece_mesh.scale_mesh(0.5f);	
 
-	//vec3 dir(0, 0, 1);
-	//dir = normalize(dir);
+	vec3 dir(0, 0, 1);
+	dir = normalize(dir);
 
-	//float yaw = 0.0f;
+	float yaw = 0.0f;
 
-	//if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
-	//	yaw = 0.0f;
-	//else
-	//	yaw = atan2f(dir.x, dir.z);
+	if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+		yaw = 0.0f;
+	else
+		yaw = atan2f(dir.x, dir.z);
 
-	//float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+	float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
 
-	//game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
+	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
 
 
 	
@@ -199,11 +199,13 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-	float c = 1.65f;
-	vec3 lightPos = main_camera.eye;// vec3(10.0f, 10.0f, 10.0f);  // World coord
+
+
+
+	vec3 lightPos = main_camera.eye + main_camera.up*2.0f;// vec3(10.0f, 10.0f, 10.0f);  // World coord
 	lightPos = normalize(lightPos) * 10.0f;
-	lightPos = rotate_x(lightPos, glm::pi<float>() / 4.0f);
-	lightPos = rotate_y(lightPos, glm::pi<float>() / 4.0f);
+//	lightPos = rotate_y(lightPos, glm::pi<float>() / 4.0f);
+	//lightPos = rotate_x(lightPos, glm::pi<float>() / 4.0f);
 
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -256,6 +258,7 @@ void display_func(void)
 
 	// reset camera matrices
 	main_camera.calculate_camera_matrices(win_x, win_y);
+
 	mv = model * main_camera.view_mat;
 	normal = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
 	mvp = main_camera.projection_mat * mv;
@@ -289,6 +292,20 @@ void display_func(void)
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
 	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+
+	glBegin(GL_LINES);
+
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, 0, 3);
+
+	glVertex3f(0, 0, 0);
+	glVertex3f(3, 0, 0); 
+	
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, 3, 0);
+
+	glEnd();
 
 
 	glFlush();
