@@ -200,11 +200,8 @@ void display_func(void)
 	);
 
 	vec3 left = cross(normalize(main_camera.eye), normalize(main_camera.up));
-	vec3 lightPos = main_camera.eye + main_camera.up * 2.0f + left * 2.0f;
+	vec3 lightPos = normalize(main_camera.eye) + normalize(main_camera.up) * 2.0f + left * 2.0f;
 	lightPos = normalize(lightPos) * 10.0f;
-//	lightPos = rotate_y(lightPos, glm::pi<float>() / 4.0f);
-	//lightPos = rotate_x(lightPos, glm::pi<float>() / 4.0f);
-
 
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
