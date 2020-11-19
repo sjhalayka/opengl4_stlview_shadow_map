@@ -10,12 +10,10 @@ uniform vec4 LightPosition; // in view space
 uniform vec4 LightPosition_Untransformed; // in world space
 
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
-vec3 MaterialKa = vec3(0.0, 0.0, 0.0);
 
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
-
 vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
-float MaterialShininess = 1000.0;
+float MaterialShininess = 100.0;
 
 layout (location = 0) out vec4 FragColor;
 
@@ -67,7 +65,7 @@ void shadeWithShadow()
         vec3 n2 = normalize(LightPosition.xyz);
         float dp = dot(n, n2);
 
-        if(dp < 0.0)
+        if(dp <= 0.0)
         {
             shadow = 1.0;
         }
@@ -85,8 +83,7 @@ void shadeWithShadow()
     else
         diffAndSpec = phongModelDiffAndSpec(false);
 
-    // If the fragment is in shadow, use ambient light only.
-    FragColor = vec4(diffAndSpec * shadow + MaterialKa, 1.0);
+    FragColor = vec4(diffAndSpec * shadow, 1.0);
 
     // Gamma correct
     FragColor = pow( FragColor, vec4(1.0 / 2.2) );
