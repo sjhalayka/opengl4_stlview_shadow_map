@@ -199,10 +199,8 @@ void display_func(void)
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 
-
-
-
-	vec3 lightPos = main_camera.eye + main_camera.up*2.0f;// vec3(10.0f, 10.0f, 10.0f);  // World coord
+	vec3 left = cross(normalize(main_camera.eye), normalize(main_camera.up));
+	vec3 lightPos = main_camera.eye + main_camera.up * 2.0f + left * 2.0f;
 	lightPos = normalize(lightPos) * 10.0f;
 //	lightPos = rotate_y(lightPos, glm::pi<float>() / 4.0f);
 	//lightPos = rotate_x(lightPos, glm::pi<float>() / 4.0f);
