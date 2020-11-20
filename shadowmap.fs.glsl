@@ -16,7 +16,7 @@ vec3 MaterialKs = vec3(1.0, 0.5, 0.0);
 vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
 float MaterialShininess = 100.0;
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec4 frag_colour;
 
 vec3 phongModelDiffAndSpec(bool do_specular)
 {
@@ -42,8 +42,8 @@ vec3 phongModelDiffAndSpec(bool do_specular)
     float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
     vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
 
-    // Only use ambient light on the backside of the object
-    vec3 ret = diffuse + diffuse2 + MaterialKa*(1.0 - sDotN)/2.0;
+    float k = (1.0 - sDotN)/2.0;
+    vec3 ret = diffuse + diffuse2 + MaterialKa*k;
 
     if(do_specular)
         ret = ret + spec;
@@ -83,12 +83,14 @@ void shadeWithShadow()
     if(shadow == 1.0)
     {
         diffAndSpec = phongModelDiffAndSpec(true);
-        FragColor = vec4(diffAndSpec, 1.0);
+        frag_colour = vec4(diffAndSpec, 1.0);
     }
     else
     {
         diffAndSpec = phongModelDiffAndSpec(false);
-        FragColor = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
+
+        frag_colour = vec4(mix(MaterialKa, diffAndSpec, shadow), 1.0);
+       // frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
 }
 
