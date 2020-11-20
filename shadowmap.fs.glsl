@@ -84,18 +84,12 @@ void shadeWithShadow()
     {
         diffAndSpec = phongModelDiffAndSpec(true);
         FragColor = vec4(diffAndSpec, 1.0);
-
     }
     else
     {
         diffAndSpec = phongModelDiffAndSpec(false);
-        FragColor = vec4(diffAndSpec * shadow + (1.0 - pow(shadow, 2.0))*MaterialKa*2.0, 1.0);
+        FragColor = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
-  
-
-
-    // Gamma correct
-    FragColor = pow( FragColor, vec4(1.0 / 2.2) );
 }
 
 subroutine (RenderPassType)

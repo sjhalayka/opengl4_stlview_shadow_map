@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(0.5f);	
+	game_piece_mesh.scale_mesh(0.25f);
 
 	vec3 dir(0, 0, 1);
 	dir = normalize(dir);
@@ -142,8 +142,8 @@ void display_func(void)
 
 	GLuint shadowFBO, pass1Index, pass2Index;
 
-	int shadowMapWidth = 8192;
-	int shadowMapHeight = 8192;
+	size_t shadowMapWidth = 10000;
+	size_t shadowMapHeight = 10000;
 
 	mat4 lightPV, shadowBias;
 
@@ -152,7 +152,7 @@ void display_func(void)
 	GLuint depthTex;
 	glGenTextures(1, &depthTex);
 	glBindTexture(GL_TEXTURE_2D, depthTex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, shadowMapWidth, shadowMapHeight);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, static_cast<GLsizei>(shadowMapWidth), static_cast<GLsizei>(shadowMapHeight));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -244,7 +244,7 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
 	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 	glFlush();
@@ -285,7 +285,7 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
 	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
@@ -301,6 +301,91 @@ void display_func(void)
 	glVertex3f(0, 3, 0);
 
 	glEnd();
+
+
+
+	//int size = shadowMapWidth * shadowMapHeight;
+	//float* buffer = new float[size];
+	//unsigned char* imgBuffer = new unsigned char[size * 4];
+
+	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buffer);
+
+	//for (int i = 0; i < shadowMapHeight; i++)
+	//	for (int j = 0; j < shadowMapWidth; j++)
+	//	{
+	//		int imgIdx = 4 * ((i * shadowMapWidth) + j);
+	//		int bufIdx = ((shadowMapHeight - i - 1) * shadowMapWidth) + j;
+
+	//		// This is just to make a more visible image.  Scale so that
+	//		// the range (minVal, 1.0) maps to (0.0, 1.0).  This probably should
+	//		// be tweaked for different light configurations.
+	//		float minVal = 0.0f;
+	//		float scale = (buffer[bufIdx] - minVal) / (1.0f - minVal);
+	//		unsigned char val = (unsigned char)(scale * 255);
+	//		imgBuffer[imgIdx] = val;
+	//		imgBuffer[imgIdx + 1] = val;
+	//		imgBuffer[imgIdx + 2] = val;
+	//		imgBuffer[imgIdx + 3] = 0xff;
+	//	}
+
+
+
+
+
+	//// Set up Targa TGA image data.
+	//unsigned char  idlength = 0;
+	//unsigned char  colourmaptype = 0;
+	//unsigned char  datatypecode = 2;
+	//unsigned short int colourmaporigin = 0;
+	//unsigned short int colourmaplength = 0;
+	//unsigned char  colourmapdepth = 0;
+	//unsigned short int x_origin = 0;
+	//unsigned short int y_origin = 0;
+
+	//unsigned short int px = shadowMapWidth;
+	//unsigned short int py = shadowMapHeight;
+	//unsigned char  bitsperpixel = 32;
+	//unsigned char  imagedescriptor = 0;
+	//vector<char> idstring;
+
+
+
+	//// Write Targa TGA file to disk.
+	//ofstream out("shadow_map_texture.tga", ios::binary);
+
+	//if (!out.is_open())
+	//{
+	//	cout << "Failed to open TGA file for writing: shadow_map_texture.tga" << endl;
+	//	return;
+	//}
+
+	//out.write(reinterpret_cast<char*>(&idlength), 1);
+	//out.write(reinterpret_cast<char*>(&colourmaptype), 1);
+	//out.write(reinterpret_cast<char*>(&datatypecode), 1);
+	//out.write(reinterpret_cast<char*>(&colourmaporigin), 2);
+	//out.write(reinterpret_cast<char*>(&colourmaplength), 2);
+	//out.write(reinterpret_cast<char*>(&colourmapdepth), 1);
+	//out.write(reinterpret_cast<char*>(&x_origin), 2);
+	//out.write(reinterpret_cast<char*>(&y_origin), 2);
+	//out.write(reinterpret_cast<char*>(&px), 2);
+	//out.write(reinterpret_cast<char*>(&py), 2);
+	//out.write(reinterpret_cast<char*>(&bitsperpixel), 1);
+	//out.write(reinterpret_cast<char*>(&imagedescriptor), 1);
+
+	//out.write(reinterpret_cast<char*>(&imgBuffer[0]), shadowMapWidth * shadowMapHeight * 4 * sizeof(unsigned char));
+
+	//out.close();
+
+	//delete[] buffer;
+	//delete[] imgBuffer;
+	//exit(1);
+
+
+
+
+
+
+
 
 
 	glFlush();
