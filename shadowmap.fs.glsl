@@ -13,6 +13,7 @@ vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
 
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
 vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
+vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
 float MaterialShininess = 100.0;
 
 layout (location = 0) out vec4 FragColor;
@@ -41,7 +42,7 @@ vec3 phongModelDiffAndSpec(bool do_specular)
     float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
     vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
 
-    vec3 ret = diffuse + diffuse2;
+    vec3 ret = diffuse + diffuse2 + MaterialKa*(1.0 - sDotN)/2.0;
 
     if(do_specular)
         ret = ret + spec;
@@ -79,11 +80,18 @@ void shadeWithShadow()
     vec3 diffAndSpec;
     
     if(shadow == 1.0)
+    {
         diffAndSpec = phongModelDiffAndSpec(true);
-    else
-        diffAndSpec = phongModelDiffAndSpec(false);
+        FragColor = vec4(diffAndSpec, 1.0);
 
-    FragColor = vec4(diffAndSpec * shadow, 1.0);
+    }
+    else
+    {
+        diffAndSpec = phongModelDiffAndSpec(false);
+        FragColor = vec4(diffAndSpec * shadow + (1.0 - pow(shadow, 2.0))*MaterialKa*2.0, 1.0);
+    }
+  
+
 
     // Gamma correct
     FragColor = pow( FragColor, vec4(1.0 / 2.2) );
