@@ -12,7 +12,7 @@ uniform vec4 LightPosition_Untransformed; // in world space
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
 
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
-vec3 MaterialKs = vec3(1.0, 1.0, 1.0);
+vec3 MaterialKs = vec3(1.0, 0.5, 0.0);
 vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
 float MaterialShininess = 100.0;
 
@@ -30,9 +30,9 @@ vec3 phongModelDiffAndSpec(bool do_specular)
 
     if( sDotN > 0.0 )
     {
-        spec.x = pow( max( dot(r,v), 0.0 ), MaterialShininess );
-        spec.y = pow( max( dot(r,v), 0.0 ), MaterialShininess );
-        spec.z = pow( max( dot(r,v), 0.0 ), MaterialShininess );
+        spec.x = MaterialKs.x * pow( max( dot(r,v), 0.0 ), MaterialShininess );
+        spec.y = MaterialKs.y * pow( max( dot(r,v), 0.0 ), MaterialShininess );
+        spec.z = MaterialKs.z * pow( max( dot(r,v), 0.0 ), MaterialShininess );
     }
 
     vec3 n2 = Normal;
@@ -42,6 +42,7 @@ vec3 phongModelDiffAndSpec(bool do_specular)
     float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
     vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
 
+    // Only use ambient light on the backside of the object
     vec3 ret = diffuse + diffuse2 + MaterialKa*(1.0 - sDotN)/2.0;
 
     if(do_specular)
