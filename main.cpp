@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 		return 2;
 	}
 	
-	sphere_mesh.scale_mesh(1.5f);
+	sphere_mesh.scale_mesh(1.0f);
 
 	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("fractal.stl"))
 	{
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
 	float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
 
-	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir);
+	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir*0.625f);
 
 
 	
@@ -272,8 +272,6 @@ void display_func(void)
 	lp_untransformed = vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.5f, 1.0f);
-	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, win_x, win_y);
@@ -301,6 +299,15 @@ void display_func(void)
 	glVertex3f(0, 3, 0);
 
 	glEnd();
+
+	//glPointSize(4.0f);
+
+	//glBegin(GL_POINTS);
+
+	//glVertex3f(main_camera.eye.x + ray.x, main_camera.eye.y + ray.y, main_camera.eye.z + ray.z);
+
+	//glEnd();
+
 
 
 
@@ -461,14 +468,14 @@ void motion_func(int x, int y)
 	}
 	else if(true == rmb_down && (0 != mouse_delta_y))
 	{
-		main_camera.w -= static_cast<float>(mouse_delta_y)*w_spacer;
+		//main_camera.w -= static_cast<float>(mouse_delta_y)*w_spacer;
 
-		if(main_camera.w < 2.0f)
-			main_camera.w = 2.0f;
-		else if(main_camera.w > 20.0f)
-			main_camera.w = 20.0f;
+		//if(main_camera.w < 2.0f)
+		//	main_camera.w = 2.0f;
+		//else if(main_camera.w > 20.0f)
+		//	main_camera.w = 20.0f;
 
-		main_camera.calculate_camera_matrices(win_x, win_y);
+		//main_camera.calculate_camera_matrices(win_x, win_y);
 	}
 }
 
