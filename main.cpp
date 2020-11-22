@@ -174,13 +174,13 @@ void display_func(void)
 	GLenum drawBuffers[] = { GL_NONE };
 	glDrawBuffers(1, drawBuffers);
 
-	GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (result == GL_FRAMEBUFFER_COMPLETE) {
-		printf("Framebuffer is complete.\n");
-	}
-	else {
-		printf("Framebuffer is not complete.\n");
-	}
+	//GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	//if (result == GL_FRAMEBUFFER_COMPLETE) {
+	//	printf("Framebuffer is complete.\n");
+	//}
+	//else {
+	//	printf("Framebuffer is not complete.\n");
+	//}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -230,16 +230,13 @@ void display_func(void)
 	vec4 lp_untransformed = vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition_Untransformed"), lp_untransformed.x, lp_untransformed.y, lp_untransformed.z, lp_untransformed.w);
 
-
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
 	glDisable(GL_CULL_FACE);
-//	glCullFace(GL_FRONT);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(2.5f, 10.0f);
-
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
@@ -287,6 +284,9 @@ void display_func(void)
 	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
+
+
+
 	// Draw axis
 	glBegin(GL_LINES);
 
@@ -315,84 +315,6 @@ void display_func(void)
 
 	//glEnd();
 
-
-
-
-	//int size = shadowMapWidth * shadowMapHeight;
-	//float* buffer = new float[size];
-	//unsigned char* imgBuffer = new unsigned char[size * 4];
-
-	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buffer);
-
-	//for (int i = 0; i < shadowMapHeight; i++)
-	//	for (int j = 0; j < shadowMapWidth; j++)
-	//	{
-	//		int imgIdx = 4 * ((i * shadowMapWidth) + j);
-	//		int bufIdx = ((shadowMapHeight - i - 1) * shadowMapWidth) + j;
-
-	//		// This is just to make a more visible image.  Scale so that
-	//		// the range (minVal, 1.0) maps to (0.0, 1.0).  This probably should
-	//		// be tweaked for different light configurations.
-	//		float minVal = 0.0f;
-	//		float scale = (buffer[bufIdx] - minVal) / (1.0f - minVal);
-	//		unsigned char val = (unsigned char)(scale * 255);
-	//		imgBuffer[imgIdx] = val;
-	//		imgBuffer[imgIdx + 1] = val;
-	//		imgBuffer[imgIdx + 2] = val;
-	//		imgBuffer[imgIdx + 3] = 0xff;
-	//	}
-
-
-
-
-
-	//// Set up Targa TGA image data.
-	//unsigned char  idlength = 0;
-	//unsigned char  colourmaptype = 0;
-	//unsigned char  datatypecode = 2;
-	//unsigned short int colourmaporigin = 0;
-	//unsigned short int colourmaplength = 0;
-	//unsigned char  colourmapdepth = 0;
-	//unsigned short int x_origin = 0;
-	//unsigned short int y_origin = 0;
-
-	//unsigned short int px = shadowMapWidth;
-	//unsigned short int py = shadowMapHeight;
-	//unsigned char  bitsperpixel = 32;
-	//unsigned char  imagedescriptor = 0;
-	//vector<char> idstring;
-
-
-
-	//// Write Targa TGA file to disk.
-	//ofstream out("shadow_map_texture.tga", ios::binary);
-
-	//if (!out.is_open())
-	//{
-	//	cout << "Failed to open TGA file for writing: shadow_map_texture.tga" << endl;
-	//	return;
-	//}
-
-	//out.write(reinterpret_cast<char*>(&idlength), 1);
-	//out.write(reinterpret_cast<char*>(&colourmaptype), 1);
-	//out.write(reinterpret_cast<char*>(&datatypecode), 1);
-	//out.write(reinterpret_cast<char*>(&colourmaporigin), 2);
-	//out.write(reinterpret_cast<char*>(&colourmaplength), 2);
-	//out.write(reinterpret_cast<char*>(&colourmapdepth), 1);
-	//out.write(reinterpret_cast<char*>(&x_origin), 2);
-	//out.write(reinterpret_cast<char*>(&y_origin), 2);
-	//out.write(reinterpret_cast<char*>(&px), 2);
-	//out.write(reinterpret_cast<char*>(&py), 2);
-	//out.write(reinterpret_cast<char*>(&bitsperpixel), 1);
-	//out.write(reinterpret_cast<char*>(&imagedescriptor), 1);
-
-	//out.write(reinterpret_cast<char*>(&imgBuffer[0]), shadowMapWidth * shadowMapHeight * 4 * sizeof(unsigned char));
-
-	//out.close();
-
-	//delete[] buffer;
-	//delete[] imgBuffer;
-	//exit(1);
 
 
 
@@ -429,6 +351,15 @@ void mouse_func(int button, int state, int x, int y)
 		{
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
+			if (false == game_piece_mesh.intersect_AABB(main_camera.eye, normalize(ray)))
+			{
+				cout << "No intersection" << endl;
+			}
+			else
+			{
+				cout << "Intersection" << endl;
+			}
+
 			lmb_down = true;
 		}
 		else
@@ -461,12 +392,17 @@ void motion_func(int x, int y)
 	int mouse_delta_x = mouse_x - prev_mouse_x;
 	int mouse_delta_y = prev_mouse_y - mouse_y;
 
+
+
 	if(true == lmb_down && (0 != mouse_delta_x || 0 != mouse_delta_y))
 	{
 		//cout << main_camera.eye.x << ' ' << main_camera.eye.y << ' ' << main_camera.eye.z << endl;
 		//cout << main_camera.look_at.x << ' ' << main_camera.look_at.y << ' ' << main_camera.look_at.z << endl;
 		//cout << ray.x << ' ' << ray.y << ' ' << ray.z << endl;
 		//cout << endl;
+
+
+
 
 		main_camera.u -= static_cast<float>(mouse_delta_y)*u_spacer;
 		main_camera.v += static_cast<float>(mouse_delta_x)*v_spacer;

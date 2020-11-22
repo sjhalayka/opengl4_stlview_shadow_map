@@ -20,6 +20,9 @@ using namespace glm;
 using std::cout;
 using std::endl;
 
+#include <algorithm>
+using std::swap;
+
 #include <fstream>
 using std::ifstream;
 using std::ofstream;
@@ -67,6 +70,46 @@ public:
 	);
 
 	void draw_AABB(void);
+
+	// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+	bool intersect_AABB(vec3 ray_origin, vec3 ray_dir)
+	{
+		float tmin = (min_location .x - ray_origin.x) / ray_dir.x;
+		float tmax = (max_location.x - ray_origin.x) / ray_dir.x;
+
+		if (tmin > tmax) swap(tmin, tmax);
+
+		float tymin = (min_location.y - ray_origin.y) / ray_dir.y;
+		float tymax = (max_location.y - ray_origin.y) / ray_dir.y;
+
+		if (tymin > tymax) swap(tymin, tymax);
+
+		if ((tmin > tymax) || (tymin > tmax))
+			return false;
+
+		if (tymin > tmin)
+			tmin = tymin;
+
+		if (tymax < tmax)
+			tmax = tymax;
+
+		float tzmin = (min_location.z - ray_origin.z) / ray_dir.z;
+		float tzmax = (max_location.z - ray_origin.z) / ray_dir.z;
+
+		if (tzmin > tzmax) swap(tzmin, tzmax);
+
+		if ((tmin > tzmax) || (tzmin > tmax))
+			return false;
+
+		if (tzmin > tmin)
+			tmin = tzmin;
+
+		if (tzmax < tmax)
+			tmax = tzmax;
+
+		return true;
+	}
+
 
 protected:
 	void get_vertices_and_normals_from_triangles();
