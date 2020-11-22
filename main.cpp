@@ -287,6 +287,7 @@ void display_func(void)
 	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
+	// Draw axis
 	glBegin(GL_LINES);
 
 	glVertex3f(0, 0, 0);
@@ -300,6 +301,12 @@ void display_func(void)
 
 	glEnd();
 
+	// AABBs
+	sphere_mesh.draw_AABB();
+	game_piece_mesh.draw_AABB();
+	
+	
+	
 	//glPointSize(4.0f);
 
 	//glBegin(GL_POINTS);

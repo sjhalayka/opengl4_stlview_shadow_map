@@ -52,6 +52,8 @@ void mesh::rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec)
 	get_vertices_and_normals_from_triangles();
 
 	init_opengl_data();
+
+	calc_AABB_min_max_locations();
 }
 
 
@@ -261,11 +263,55 @@ bool mesh::read_triangles_from_binary_stereo_lithography_file(const char *const 
 
 	init_opengl_data();
 
-
+	calc_AABB_min_max_locations();
 
 
     return true;
-} 
+}
+
+
+
+void mesh::calc_AABB_min_max_locations(void)
+{
+	float curr_x_min = numeric_limits<float>::max();
+	float curr_y_min = numeric_limits<float>::max();
+	float curr_z_min = numeric_limits<float>::max();
+	float curr_x_max = numeric_limits<float>::min();
+	float curr_y_max = numeric_limits<float>::min();
+	float curr_z_max = numeric_limits<float>::min();
+
+	for (size_t i = 0; i < triangles.size(); i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+		{
+			if (triangles[i].vertex[j].x < curr_x_min)
+				curr_x_min = triangles[i].vertex[j].x;
+
+			if (triangles[i].vertex[j].x > curr_x_max)
+				curr_x_max = triangles[i].vertex[j].x;
+
+			if (triangles[i].vertex[j].y < curr_y_min)
+				curr_y_min = triangles[i].vertex[j].y;
+
+			if (triangles[i].vertex[j].y > curr_y_max)
+				curr_y_max = triangles[i].vertex[j].y;
+
+			if (triangles[i].vertex[j].z < curr_z_min)
+				curr_z_min = triangles[i].vertex[j].z;
+
+			if (triangles[i].vertex[j].z > curr_z_max)
+				curr_z_max = triangles[i].vertex[j].z;
+		}
+	}
+
+	min_location.x = curr_x_min;
+	min_location.y = curr_y_min;
+	min_location.z = curr_z_min;
+
+	max_location.x = curr_x_max;
+	max_location.y = curr_y_max;
+	max_location.z = curr_z_max;
+}
 
 void mesh::scale_mesh(float max_extent)
 {
@@ -331,7 +377,48 @@ void mesh::scale_mesh(float max_extent)
 	get_vertices_and_normals_from_triangles();
 
 	init_opengl_data();
+
+	calc_AABB_min_max_locations();
 }
+
+void mesh::draw_AABB(void)
+{
+	glBegin(GL_LINE_LOOP);
+
+	glVertex3f(min_location.x, max_location.y, min_location.z);
+	glVertex3f(min_location.x, min_location.y, min_location.z);
+	glVertex3f(max_location.x, min_location.y, min_location.z);
+	glVertex3f(max_location.x, max_location.y, min_location.z);
+
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+
+	glVertex3f(min_location.x, max_location.y, max_location.z);
+	glVertex3f(min_location.x, min_location.y, max_location.z);
+	glVertex3f(max_location.x, min_location.y, max_location.z);
+	glVertex3f(max_location.x, max_location.y, max_location.z);
+
+	glEnd();
+
+	glBegin(GL_LINES);
+
+	glVertex3f(max_location.x, min_location.y, min_location.z);
+	glVertex3f(max_location.x, min_location.y, max_location.z);
+
+	glVertex3f(min_location.x, max_location.y, min_location.z);
+	glVertex3f(min_location.x, max_location.y, max_location.z);
+
+	glVertex3f(max_location.x, max_location.y, min_location.z);
+	glVertex3f(max_location.x, max_location.y, max_location.z);
+
+	glVertex3f(min_location.x, min_location.y, min_location.z);
+	glVertex3f(min_location.x, min_location.y, max_location.z);
+
+	glEnd();
+}
+
+
 
 void mesh::draw(GLint render_shader_program,
 	int win_x,

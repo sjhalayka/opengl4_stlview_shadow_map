@@ -48,6 +48,10 @@ public:
 	vector<vec3> vertex_normals;
 	vector<float> opengl_vertex_data;
 
+	vec3 min_location, max_location;
+
+	void calc_AABB_min_max_locations(void);
+
 	bool read_triangles_from_binary_stereo_lithography_file(const char* const file_name);
 	void scale_mesh(float max_extent);
 	void rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec);
@@ -61,6 +65,8 @@ public:
 		//GLint use_specular_uniform_location,
 		//bool use_specular
 	);
+
+	void draw_AABB(void);
 
 protected:
 	void get_vertices_and_normals_from_triangles();
