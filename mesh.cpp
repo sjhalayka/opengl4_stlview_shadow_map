@@ -322,9 +322,9 @@ void mesh::scale_mesh(float max_extent)
 	float curr_x_min = numeric_limits<float>::max();
 	float curr_y_min = numeric_limits<float>::max();
 	float curr_z_min = numeric_limits<float>::max();
-	float curr_x_max = numeric_limits<float>::min();
-	float curr_y_max = numeric_limits<float>::min();
-	float curr_z_max = numeric_limits<float>::min();
+	float curr_x_max = -numeric_limits<float>::max();
+	float curr_y_max = -numeric_limits<float>::max();
+	float curr_z_max = -numeric_limits<float>::max();
 	
 	for(size_t i = 0; i < triangles.size(); i++)
 	{

@@ -24,15 +24,13 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-
+	game_piece_mesh.scale_mesh(0.25f);
 
 	for (size_t i = 0; i < 5; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
-		player_game_piece_meshes[i].scale_mesh(0.25f);
-
 		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
@@ -65,8 +63,6 @@ int main(int argc, char **argv)
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
-		enemy_game_piece_meshes[i].scale_mesh(0.25f);
-
 		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
@@ -368,14 +364,18 @@ void display_func(void)
 
 	glEnd();
 
-	// AABBs
-	//sphere_mesh.draw_AABB();
-
-	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-		player_game_piece_meshes[i].draw_AABB();
-
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-		enemy_game_piece_meshes[i].draw_AABB();
+	if (col_loc == sphere)
+	{
+		sphere_mesh.draw_AABB();
+	}
+	else if (col_loc == player_game_piece)
+	{
+		player_game_piece_meshes[collision_location_index].draw_AABB();
+	}
+	else if (col_loc == enemy_game_piece)
+	{
+		enemy_game_piece_meshes[collision_location_index].draw_AABB();
+	}
 	
 	
 	glPointSize(4.0f);
@@ -436,6 +436,9 @@ void mouse_func(int button, int state, int x, int y)
 						{
 							collision_location = closest_intersection_point;
 							first_assignment = false;
+
+							col_loc = player_game_piece;
+							collision_location_index = i;
 						}
 						else
 						{
@@ -443,7 +446,12 @@ void mouse_func(int button, int state, int x, int y)
 							vec3 c1 = main_camera.eye - collision_location;
 
 							if (length(c0) < length(c1))
+							{
 								collision_location = closest_intersection_point;
+
+								col_loc = player_game_piece;
+								collision_location_index = i;
+							}
 						}
 					}
 				}
@@ -461,6 +469,9 @@ void mouse_func(int button, int state, int x, int y)
 						{
 							collision_location = closest_intersection_point;
 							first_assignment = false;
+
+							col_loc = enemy_game_piece;
+							collision_location_index = i;
 						}
 						else
 						{
@@ -468,33 +479,47 @@ void mouse_func(int button, int state, int x, int y)
 							vec3 c1 = main_camera.eye - collision_location;
 
 							if (length(c0) < length(c1))
+							{
 								collision_location = closest_intersection_point;
+
+								col_loc = enemy_game_piece;
+								collision_location_index = i;
+							}
 						}
 					}
 				}
 			}
 
+			float t = 0;
 
+			if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
+			{
+				vec3 closest_intersection_point = main_camera.eye + ray * t;
 
-			//float t = 0;
+				if (first_assignment)
+				{
+					collision_location = closest_intersection_point;
+					first_assignment = false;
 
-			//if (false == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
-			//{
-			//	cout << "No sphere intersection" << endl;
-			//}
-			//else
-			//{
-			//	// if triangle collision is further than the sphere collision, replace collision location
+					col_loc = sphere;
+				}
+				else
+				{
+					vec3 c0 = main_camera.eye - closest_intersection_point;
+					vec3 c1 = main_camera.eye - collision_location;
 
-			//	collision_location = main_camera.eye + ray * t;
+					if (length(c0) < length(c1))
+					{
+						collision_location = closest_intersection_point;
+						col_loc = sphere;
+					}
+				}
+			}
 
-			//	cout << "Sphere intersection" << endl;
-
-
-			//}
-
-
-
+			if (first_assignment)
+			{
+				col_loc = background;
+			}
 
 			lmb_down = true;
 		}
