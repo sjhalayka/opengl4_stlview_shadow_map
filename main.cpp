@@ -10,7 +10,13 @@ int main(int argc, char **argv)
 		return 2;
 	}
 	
-	sphere_mesh.scale_mesh(1.0f);
+	sphere_mesh.scale_mesh(1.0f); // radius == 0.5f;
+
+
+
+
+
+	mesh game_piece_mesh;
 
 	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("fractal.stl"))
 	{
@@ -18,21 +24,75 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(0.25f);
 
-	vec3 dir(0, 0, 1);
-	dir = normalize(dir);
 
-	float yaw = 0.0f;
+	for (size_t i = 0; i < 5; i++)
+		player_game_piece_meshes.push_back(game_piece_mesh);
 
-	if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
-		yaw = 0.0f;
-	else
-		yaw = atan2f(dir.x, dir.z);
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	{
+		player_game_piece_meshes[i].scale_mesh(0.25f);
 
-	float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 
-	game_piece_mesh.rotate_and_translate_mesh(yaw, pitch, dir*0.625f);
+		x *= 2.0f;	
+		x -= 1.0f;
+		y *= 2.0f;
+		y -= 1.0f;
+		z *= 2.0f;
+		z -= 1.0f;
+
+		vec3 dir(x, y, z);
+		dir = normalize(dir);
+
+		float yaw = 0.0f;
+
+		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+			yaw = 0.0f;
+		else
+			yaw = atan2f(dir.x, dir.z);
+
+		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+
+		player_game_piece_meshes[i].rotate_and_translate_mesh(yaw, pitch, dir*0.625f);
+	}
+
+
+	for (size_t i = 0; i < 5; i++)
+		enemy_game_piece_meshes.push_back(game_piece_mesh);
+
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	{
+		enemy_game_piece_meshes[i].scale_mesh(0.25f);
+
+		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+
+		x *= 2.0f;
+		x -= 1.0f;
+		y *= 2.0f;
+		y -= 1.0f;
+		z *= 2.0f;
+		z -= 1.0f;
+
+		vec3 dir(x, y, z);
+		dir = normalize(dir);
+
+		float yaw = 0.0f;
+
+		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+			yaw = 0.0f;
+		else
+			yaw = atan2f(dir.x, dir.z);
+
+		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+
+		enemy_game_piece_meshes[i].rotate_and_translate_mesh(yaw, pitch, dir * 0.625f);
+	}
+
 
 
 	
@@ -128,12 +188,7 @@ void reshape_func(int width, int height)
 
 
 
-void draw_meshes(GLint render_shader_program)
-{
-	sphere_mesh.draw(render_shader_program, win_x, win_y);
 
-	game_piece_mesh.draw(render_shader_program, win_x, win_y);
-}
 
 
 void display_func(void)
@@ -232,7 +287,7 @@ void display_func(void)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+	glViewport(0, 0, static_cast<GLsizei>(shadowMapWidth), static_cast<GLsizei>(shadowMapHeight));
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_POLYGON_OFFSET_FILL);
@@ -242,7 +297,15 @@ void display_func(void)
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
-	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+
 
 	glFlush();
 
@@ -281,10 +344,14 @@ void display_func(void)
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
-	game_piece_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
 
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 
 
 	// Draw axis
@@ -302,9 +369,13 @@ void display_func(void)
 	glEnd();
 
 	// AABBs
-	sphere_mesh.draw_AABB();
-	game_piece_mesh.draw_AABB();
-	
+	//sphere_mesh.draw_AABB();
+
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+		player_game_piece_meshes[i].draw_AABB();
+
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+		enemy_game_piece_meshes[i].draw_AABB();
 	
 	
 	glPointSize(4.0f);
@@ -351,24 +422,59 @@ void mouse_func(int button, int state, int x, int y)
 		{
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
-			if (false == game_piece_mesh.intersect_AABB(main_camera.eye, ray))
-			{
-				cout << "No fractal intersection" << endl;
-			}
-			else
-			{
-				vec3 closest_triangle_intersection_location;
+			bool first_assignment = true;
 
-				if (true == game_piece_mesh.intersect_triangles(main_camera.eye, ray, closest_triangle_intersection_location))
+			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+			{
+				if (true == player_game_piece_meshes[i].intersect_AABB(main_camera.eye, ray))
 				{
-					collision_location = closest_triangle_intersection_location;
+					vec3 closest_intersection_point;
 
+					if (true == player_game_piece_meshes[i].intersect_triangles(main_camera.eye, ray, closest_intersection_point))
+					{
+						if (first_assignment)
+						{
+							collision_location = closest_intersection_point;
+							first_assignment = false;
+						}
+						else
+						{
+							vec3 c0 = main_camera.eye - closest_intersection_point;
+							vec3 c1 = main_camera.eye - collision_location;
+
+							if (length(c0) < length(c1))
+								collision_location = closest_intersection_point;
+						}
+					}
 				}
-				// go through all triangles. find intersection point closest to eye
-				cout << "Fractal intersection" << endl;
-
-				// assign point closest to eye as collision_location
 			}
+
+			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+			{
+				if (true == enemy_game_piece_meshes[i].intersect_AABB(main_camera.eye, ray))
+				{
+					vec3 closest_intersection_point;
+
+					if (true == enemy_game_piece_meshes[i].intersect_triangles(main_camera.eye, ray, closest_intersection_point))
+					{
+						if (first_assignment)
+						{
+							collision_location = closest_intersection_point;
+							first_assignment = false;
+						}
+						else
+						{
+							vec3 c0 = main_camera.eye - closest_intersection_point;
+							vec3 c1 = main_camera.eye - collision_location;
+
+							if (length(c0) < length(c1))
+								collision_location = closest_intersection_point;
+						}
+					}
+				}
+			}
+
+
 
 			//float t = 0;
 

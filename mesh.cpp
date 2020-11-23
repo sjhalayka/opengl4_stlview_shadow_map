@@ -29,7 +29,7 @@ void mesh::rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec)
 		mat4 rot1_mat = rotate(identity_mat, pitch, glm::vec3(1.0, 0.0, 0.0));
 		mat4 translate_mat = translate(identity_mat, translate_vec);
 
-		mat4 transform = translate_mat * rot1_mat * rot0_mat;
+		mat4 transform = translate_mat * rot0_mat * rot1_mat;
 
 		v0 = transform * v0;
 		v1 = transform * v1;
@@ -276,9 +276,13 @@ void mesh::calc_AABB_min_max_locations(void)
 	float curr_x_min = numeric_limits<float>::max();
 	float curr_y_min = numeric_limits<float>::max();
 	float curr_z_min = numeric_limits<float>::max();
-	float curr_x_max = numeric_limits<float>::min();
-	float curr_y_max = numeric_limits<float>::min();
-	float curr_z_max = numeric_limits<float>::min();
+	float curr_x_max = -numeric_limits<float>::max();
+	float curr_y_max = -numeric_limits<float>::max();
+	float curr_z_max = -numeric_limits<float>::max();
+
+	//cout << curr_x_min << " " << curr_y_min << " " << curr_z_min << endl;
+	//cout << curr_x_max << " " << curr_y_max << " " << curr_z_max << endl;
+	//cout << endl;
 
 	for (size_t i = 0; i < triangles.size(); i++)
 	{
