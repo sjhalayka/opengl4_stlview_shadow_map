@@ -76,7 +76,7 @@ int mouse_x = 0;
 int mouse_y = 0;
 
 vec3 ray;
-
+vec3 collision_location;
 
 GLuint      render_fbo = 0;
 GLuint      fbo_textures[3] = { 0, 0, 0 };
@@ -113,6 +113,43 @@ vec3 screen_coords_to_world_coords(const int x, const int y, const int screen_wi
 	return ret_dir;
 }
 
+
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+bool line_sphere_intersect(const vec3 orig, const vec3 dir, const vec3 center, const float radius, float& t)
+{
+	float t0, t1; // solutions for t if the ray intersects 
+
+	vec3 L = center - orig;
+	float tca = dot(L, dir);
+
+	if (tca < 0)
+		return false;
+	
+	float d2 = dot(L, L) - tca * tca;
+
+	float radius2 = radius * radius;
+
+	if (d2 > radius2) 
+		return false;
+
+	float thc = sqrt(radius2 - d2);
+	t0 = tca - thc;
+	t1 = tca + thc;
+
+	if (t0 > t1) std::swap(t0, t1);
+
+	if (t0 < 0) 
+	{
+		t0 = t1; // if t0 is negative, let's use t1 instead 
+		
+		if (t0 < 0)
+			return false; // both t0 and t1 are negative 
+	}
+
+	t = t0;
+
+	return true;
+}
 
 
 

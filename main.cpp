@@ -307,13 +307,13 @@ void display_func(void)
 	
 	
 	
-	//glPointSize(4.0f);
+	glPointSize(4.0f);
 
-	//glBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 
-	//glVertex3f(main_camera.eye.x + ray.x, main_camera.eye.y + ray.y, main_camera.eye.z + ray.z);
+	glVertex3f(collision_location.x, collision_location.y, collision_location.z);
 
-	//glEnd();
+	glEnd();
 
 
 
@@ -351,14 +351,44 @@ void mouse_func(int button, int state, int x, int y)
 		{
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
-			if (false == game_piece_mesh.intersect_AABB(main_camera.eye, normalize(ray)))
+			if (false == game_piece_mesh.intersect_AABB(main_camera.eye, ray))
 			{
-				cout << "No intersection" << endl;
+				cout << "No fractal intersection" << endl;
 			}
 			else
 			{
-				cout << "Intersection" << endl;
+				vec3 closest_triangle_intersection_location;
+
+				if (true == game_piece_mesh.intersect_triangles(main_camera.eye, ray, closest_triangle_intersection_location))
+				{
+					collision_location = closest_triangle_intersection_location;
+
+				}
+				// go through all triangles. find intersection point closest to eye
+				cout << "Fractal intersection" << endl;
+
+				// assign point closest to eye as collision_location
 			}
+
+			//float t = 0;
+
+			//if (false == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
+			//{
+			//	cout << "No sphere intersection" << endl;
+			//}
+			//else
+			//{
+			//	// if triangle collision is further than the sphere collision, replace collision location
+
+			//	collision_location = main_camera.eye + ray * t;
+
+			//	cout << "Sphere intersection" << endl;
+
+
+			//}
+
+
+
 
 			lmb_down = true;
 		}
