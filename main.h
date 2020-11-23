@@ -44,6 +44,7 @@ void passive_motion_func(int x, int y);
 
 void draw_meshes(GLint render_shader_program);
 
+vector<mesh> game_piece_meshes;
 
 mesh sphere_mesh;
 mesh game_piece_mesh;
