@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
 	game_piece_mesh.scale_mesh(0.25f);
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 1; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	}
 
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 1; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -155,12 +155,6 @@ bool init_opengl(const int &width, const int &height)
 	}
 
 
-
-
-
-
-
-
 	return true;
 }
 
@@ -237,8 +231,13 @@ void display_func(void)
 
 
 	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 
+
+
+	shadow_map.use_program();
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 	GLuint programHandle = shadow_map.get_program();
 	pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
@@ -257,7 +256,6 @@ void display_func(void)
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
 
-	shadow_map.use_program();
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
 
 
@@ -301,6 +299,11 @@ void display_func(void)
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+
+
+	//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+	//draw_axis(shadow_map.get_program());
+	//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 
 	glFlush();
@@ -350,19 +353,11 @@ void display_func(void)
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 
 
-	// Draw axis
-	glBegin(GL_LINES);
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+	draw_axis(shadow_map.get_program());
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
-	glVertex3f(0, 0, 0);
-	glVertex3f(0, 0, 3);
 
-	glVertex3f(0, 0, 0);
-	glVertex3f(3, 0, 0); 
-	
-	glVertex3f(0, 0, 0);
-	glVertex3f(0, 3, 0);
-
-	glEnd();
 
 	if (col_loc == sphere)
 	{

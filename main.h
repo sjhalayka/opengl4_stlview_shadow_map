@@ -63,6 +63,8 @@ vector<vec3> vertex_normals;
 
 
 
+
+
 vertex_fragment_shader shadow_map;
 
 
@@ -160,7 +162,143 @@ bool line_sphere_intersect(const vec3 orig, const vec3 dir, const vec3 center, c
 
 
 
+void draw_axis(GLuint program)
+{
+	GLuint components_per_vertex = 6;
+	const GLuint components_per_normal = 3;
+	GLuint components_per_position = 3;
+
+	GLuint axis_buffer;
+
+	glGenBuffers(1, &axis_buffer);
+
+	vector<GLfloat> flat_data;
+
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(1);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	GLuint num_vertices = static_cast<GLuint>(flat_data.size()) / components_per_vertex;
+
+	glBindBuffer(GL_ARRAY_BUFFER, axis_buffer);
+	glBufferData(GL_ARRAY_BUFFER, flat_data.size() * sizeof(GLfloat), &flat_data[0], GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "position"));
+	glVertexAttribPointer(glGetAttribLocation(program, "position"),
+		components_per_position,
+		GL_FLOAT,
+		GL_FALSE,
+		components_per_vertex * sizeof(GLfloat),
+		NULL);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "normal"));
+	glVertexAttribPointer(glGetAttribLocation(program, "normal"),
+		components_per_normal,
+		GL_FLOAT,
+		GL_TRUE,
+		components_per_vertex * sizeof(GLfloat),
+		(const GLvoid*)(components_per_position * sizeof(GLfloat)));
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0, 0.0, 1.0f);
+	glDrawArrays(GL_LINES, 0, num_vertices);
 
 
+
+
+	flat_data.clear();
+
+	flat_data.push_back(0);
+	flat_data.push_back(1);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	num_vertices = static_cast<GLuint>(flat_data.size()) / components_per_vertex;
+
+	glBindBuffer(GL_ARRAY_BUFFER, axis_buffer);
+	glBufferData(GL_ARRAY_BUFFER, flat_data.size() * sizeof(GLfloat), &flat_data[0], GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "position"));
+	glVertexAttribPointer(glGetAttribLocation(program, "position"),
+		components_per_position,
+		GL_FLOAT,
+		GL_FALSE,
+		components_per_vertex * sizeof(GLfloat),
+		NULL);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "normal"));
+	glVertexAttribPointer(glGetAttribLocation(program, "normal"),
+		components_per_normal,
+		GL_FLOAT,
+		GL_TRUE,
+		components_per_vertex * sizeof(GLfloat),
+		(const GLvoid*)(components_per_position * sizeof(GLfloat)));
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0, 1.0, 0.0f);
+	glDrawArrays(GL_LINES, 0, num_vertices);
+
+
+
+	flat_data.clear();
+
+	flat_data.push_back(1);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+	flat_data.push_back(0);
+
+	num_vertices = static_cast<GLuint>(flat_data.size()) / components_per_vertex;
+
+	glBindBuffer(GL_ARRAY_BUFFER, axis_buffer);
+	glBufferData(GL_ARRAY_BUFFER, flat_data.size() * sizeof(GLfloat), &flat_data[0], GL_DYNAMIC_DRAW);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "position"));
+	glVertexAttribPointer(glGetAttribLocation(program, "position"),
+		components_per_position,
+		GL_FLOAT,
+		GL_FALSE,
+		components_per_vertex * sizeof(GLfloat),
+		NULL);
+
+	glEnableVertexAttribArray(glGetAttribLocation(program, "normal"));
+	glVertexAttribPointer(glGetAttribLocation(program, "normal"),
+		components_per_normal,
+		GL_FLOAT,
+		GL_TRUE,
+		components_per_vertex * sizeof(GLfloat),
+		(const GLvoid*)(components_per_position * sizeof(GLfloat)));
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0, 0.0, 0.0f);
+	glDrawArrays(GL_LINES, 0, num_vertices);
+
+	glDeleteBuffers(1, &axis_buffer);
+}
 
 #endif
+

@@ -9,6 +9,8 @@ in vec4 ShadowCoord;
 uniform vec4 LightPosition; // in view space
 uniform vec4 LightPosition_Untransformed; // in world space
 
+uniform int flat_colour = 0;
+
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
 
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
@@ -57,6 +59,12 @@ subroutine uniform RenderPassType RenderPass;
 subroutine (RenderPassType)
 void shadeWithShadow()
 {
+    if(flat_colour == 1)
+    {
+        frag_colour = vec4(MaterialKd, 1.0);
+        return;
+    }
+
     float shadow = 1.0;
 
     if( ShadowCoord.z >= 0.0 )
