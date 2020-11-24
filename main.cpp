@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
 	game_piece_mesh.scale_mesh(0.25f);
 
-	for (size_t i = 0; i < 1; i++)
+	for (size_t i = 0; i < 5; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	}
 
 
-	for (size_t i = 0; i < 1; i++)
+	for (size_t i = 0; i < 5; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -301,10 +301,6 @@ void display_func(void)
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 
 
-	//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-	//draw_axis(shadow_map.get_program());
-	//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
-
 
 	glFlush();
 
@@ -345,13 +341,22 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	{
+		if (col_loc == player_game_piece && i == collision_location_index)
+			continue;
+
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	}
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	{
+		if (col_loc == enemy_game_piece && i == collision_location_index)
+			continue;
 
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	}
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 	draw_axis(shadow_map.get_program());
@@ -365,11 +370,157 @@ void display_func(void)
 	}
 	else if (col_loc == player_game_piece)
 	{
-		player_game_piece_meshes[collision_location_index].draw_AABB();
+		glDisable(GL_DEPTH_TEST);
+
+		glLineWidth(4.0);
+		glPolygonMode(GL_FRONT, GL_LINES);
+
+		GLubyte checkered_stipple_pattern[] = 
+		{
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc
+		};
+
+		glEnable(GL_POLYGON_STIPPLE);
+
+		glPolygonStipple(checkered_stipple_pattern);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glDisable(GL_POLYGON_STIPPLE);
+
+
+		glPolygonMode(GL_FRONT, GL_TRIANGLES);
+		glLineWidth(1.0);
+
+		glEnable(GL_DEPTH_TEST);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
+
+		// Draw outline code from NeHe lesson 37:
+		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
+		glLineWidth(1.0);
+		glCullFace(GL_FRONT);
+		glPolygonMode(GL_BACK, GL_LINE);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glCullFace(GL_BACK);
 	}
 	else if (col_loc == enemy_game_piece)
 	{
-		enemy_game_piece_meshes[collision_location_index].draw_AABB();
+		glDisable(GL_DEPTH_TEST);
+
+		glLineWidth(4.0);
+		glPolygonMode(GL_FRONT, GL_LINES);
+
+		GLubyte checkered_stipple_pattern[] =
+		{
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc,
+			0x33,0x33,0x33,0x33,
+			0x33,0x33,0x33,0x33,
+			0xcc,0xcc,0xcc,0xcc,
+			0xcc,0xcc,0xcc,0xcc
+		};
+
+		glEnable(GL_POLYGON_STIPPLE);
+
+		glPolygonStipple(checkered_stipple_pattern);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glDisable(GL_POLYGON_STIPPLE);
+
+
+		glPolygonMode(GL_FRONT, GL_TRIANGLES);
+		glLineWidth(1.0);
+
+		glEnable(GL_DEPTH_TEST);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
+
+		// Draw outline code from NeHe lesson 37:
+		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
+		glLineWidth(1.0);
+		glCullFace(GL_FRONT);
+		glPolygonMode(GL_BACK, GL_LINE);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glCullFace(GL_BACK);
 	}
 	
 	
