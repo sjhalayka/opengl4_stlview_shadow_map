@@ -427,7 +427,7 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
@@ -449,7 +449,7 @@ void display_func(void)
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_BACK, GL_LINE);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
@@ -504,7 +504,7 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
@@ -526,7 +526,7 @@ void display_func(void)
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_BACK, GL_LINE);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
