@@ -296,8 +296,8 @@ void display_func(void)
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
 		// skip the selected game piece... we'll draw it later
-		if (col_loc == player_game_piece && i == collision_location_index)
-			continue;
+		//if (col_loc == player_game_piece && i == collision_location_index)
+		//	continue;
 
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
@@ -307,8 +307,8 @@ void display_func(void)
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
 		// skip the selected game piece... we'll draw it later
-		if (col_loc == enemy_game_piece && i == collision_location_index)
-			continue;
+		//if (col_loc == enemy_game_piece && i == collision_location_index)
+		//	continue;
 
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
@@ -354,8 +354,8 @@ void display_func(void)
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
 		// skip the selected game piece... we'll draw it later
-		if (col_loc == player_game_piece && i == collision_location_index)
-			continue;
+		//if (col_loc == player_game_piece && i == collision_location_index)
+		//	continue;
 
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
@@ -365,8 +365,8 @@ void display_func(void)
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
 		// skip the selected game piece... we'll draw it later
-		if (col_loc == enemy_game_piece && i == collision_location_index)
-			continue;
+		//if (col_loc == enemy_game_piece && i == collision_location_index)
+		//	continue;
 
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
