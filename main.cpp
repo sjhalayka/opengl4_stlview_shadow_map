@@ -4,6 +4,7 @@
 
 int main(int argc, char **argv)
 {
+
 	if(false == sphere_mesh.read_triangles_from_binary_stereo_lithography_file("sphere.stl"))
 	{
 		cout << "Error: Could not properly read file sphere.stl" << endl;
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
 
 	game_piece_mesh.scale_mesh(0.25f);
 
-	for (size_t i = 0; i < 2; i++)
+	for (size_t i = 0; i < 5; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 	}
 
 
-	for (size_t i = 0; i < 2; i++)
+	for (size_t i = 0; i < 5; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -96,6 +97,8 @@ int main(int argc, char **argv)
 	
 	if (false == init_opengl(win_x, win_y))
 		return 1;
+
+
 
 	glutReshapeFunc(reshape_func);
 	glutIdleFunc(idle_func);
@@ -183,6 +186,10 @@ void reshape_func(int width, int height)
 
 void display_func(void)
 {
+	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
+
+
 	Frustum lightFrustum;
 
 	GLuint shadowFBO, pass1Index, pass2Index;
@@ -376,15 +383,24 @@ void display_func(void)
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 
+	float f = elapsed.count();
+	f /= 1000;
+	f *= glm::pi<float>();
+
+	float s = sin(f);
+	s += 1.0f;
+	s *= 2.0f;
+
 	if (col_loc == sphere)
 	{
 		sphere_mesh.draw_AABB();
 	}
 	else if (col_loc == player_game_piece)
 	{
+		vec3 outline_colour(0, 1*s, 0);
+
 		glDisable(GL_DEPTH_TEST);
 
-		glLineWidth(4.0);
 		glPolygonMode(GL_FRONT, GL_LINES);
 
 		GLubyte checkered_stipple_pattern[] = 
@@ -427,7 +443,7 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
@@ -435,8 +451,7 @@ void display_func(void)
 		glDisable(GL_POLYGON_STIPPLE);
 
 
-		glPolygonMode(GL_FRONT, GL_TRIANGLES);
-		glLineWidth(1.0);
+		glPolygonMode(GL_FRONT, GL_FILL);
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -445,23 +460,24 @@ void display_func(void)
 
 		// Draw outline code from NeHe lesson 37:
 		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
-		glLineWidth(1.0);
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_BACK, GL_LINE);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
+		glPolygonMode(GL_BACK, GL_FILL);
 		glCullFace(GL_BACK);
 	}
 	else if (col_loc == enemy_game_piece)
 	{
+		vec3 outline_colour(0, 0, 1*s);
+
 		glDisable(GL_DEPTH_TEST);
 
-		glLineWidth(4.0);
 		glPolygonMode(GL_FRONT, GL_LINES);
 
 		GLubyte checkered_stipple_pattern[] =
@@ -504,7 +520,7 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
@@ -512,8 +528,7 @@ void display_func(void)
 		glDisable(GL_POLYGON_STIPPLE);
 
 
-		glPolygonMode(GL_FRONT, GL_TRIANGLES);
-		glLineWidth(1.0);
+		glPolygonMode(GL_FRONT, GL_FILL);
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -522,16 +537,16 @@ void display_func(void)
 
 		// Draw outline code from NeHe lesson 37:
 		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
-		glLineWidth(1.0);
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_BACK, GL_LINE);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 1.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
+		glPolygonMode(GL_BACK, GL_FILL);
 		glCullFace(GL_BACK);
 	}
 
@@ -543,7 +558,6 @@ void display_func(void)
 	glVertex3f(collision_location.x, collision_location.y, collision_location.z);
 
 	glEnd();
-
 
 
 
