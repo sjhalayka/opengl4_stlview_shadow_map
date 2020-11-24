@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
 	game_piece_mesh.scale_mesh(0.25f);
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 2; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	}
 
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 2; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -187,8 +187,8 @@ void display_func(void)
 
 	GLuint shadowFBO, pass1Index, pass2Index;
 
-	size_t shadowMapWidth = 10000;
-	size_t shadowMapHeight = 10000;
+	size_t shadowMapWidth = 8192;
+	size_t shadowMapHeight = 8192;
 
 	mat4 lightPV, shadowBias;
 
@@ -256,6 +256,7 @@ void display_func(void)
 	lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	lightFrustum.setPerspective(45.0f, 1.0f, 1.0f, 25.0f);
 
+
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
 
 
@@ -293,17 +294,27 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	{
+		// skip the selected game piece... we'll draw it later
+		if (col_loc == player_game_piece && i == collision_location_index)
+			continue;
+
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
-	
+	}
+
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	{
+		// skip the selected game piece... we'll draw it later
+		if (col_loc == enemy_game_piece && i == collision_location_index)
+			continue;
 
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	}
 
 
 	glFlush();
-
 
 
 	// reset camera matrices
@@ -342,6 +353,7 @@ void display_func(void)
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
+		// skip the selected game piece... we'll draw it later
 		if (col_loc == player_game_piece && i == collision_location_index)
 			continue;
 
@@ -352,6 +364,7 @@ void display_func(void)
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
+		// skip the selected game piece... we'll draw it later
 		if (col_loc == enemy_game_piece && i == collision_location_index)
 			continue;
 
@@ -361,7 +374,6 @@ void display_func(void)
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 	draw_axis(shadow_map.get_program());
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
-
 
 
 	if (col_loc == sphere)
@@ -522,7 +534,7 @@ void display_func(void)
 
 		glCullFace(GL_BACK);
 	}
-	
+
 	
 	glPointSize(4.0f);
 
@@ -699,18 +711,8 @@ void motion_func(int x, int y)
 	int mouse_delta_x = mouse_x - prev_mouse_x;
 	int mouse_delta_y = prev_mouse_y - mouse_y;
 
-
-
 	if(true == lmb_down && (0 != mouse_delta_x || 0 != mouse_delta_y))
 	{
-		//cout << main_camera.eye.x << ' ' << main_camera.eye.y << ' ' << main_camera.eye.z << endl;
-		//cout << main_camera.look_at.x << ' ' << main_camera.look_at.y << ' ' << main_camera.look_at.z << endl;
-		//cout << ray.x << ' ' << ray.y << ' ' << ray.z << endl;
-		//cout << endl;
-
-
-
-
 		main_camera.u -= static_cast<float>(mouse_delta_y)*u_spacer;
 		main_camera.v += static_cast<float>(mouse_delta_x)*v_spacer;
 
@@ -718,14 +720,14 @@ void motion_func(int x, int y)
 	}
 	else if(true == rmb_down && (0 != mouse_delta_y))
 	{
-		//main_camera.w -= static_cast<float>(mouse_delta_y)*w_spacer;
+		main_camera.w -= static_cast<float>(mouse_delta_y)*w_spacer;
 
-		//if(main_camera.w < 2.0f)
-		//	main_camera.w = 2.0f;
-		//else if(main_camera.w > 20.0f)
-		//	main_camera.w = 20.0f;
+		if(main_camera.w < 2.0f)
+			main_camera.w = 2.0f;
+		else if(main_camera.w > 20.0f)
+			main_camera.w = 20.0f;
 
-		//main_camera.calculate_camera_matrices(win_x, win_y);
+		main_camera.calculate_camera_matrices(win_x, win_y);
 	}
 }
 
