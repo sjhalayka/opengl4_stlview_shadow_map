@@ -51,6 +51,8 @@ public:
 	vector<vec3> vertex_normals;
 	vector<float> opengl_vertex_data;
 
+	mat4 model_mat;
+
 	vec3 min_location, max_location;
 
 	void calc_AABB_min_max_locations(void);
