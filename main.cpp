@@ -257,6 +257,8 @@ void display_func(void)
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 
+	vec3 player_colour(1, 0, 0);
+	vec3 enemy_colour(0.75f, 0.75f, 0.75f);
 
 
 	shadow_map.use_program();
@@ -328,7 +330,7 @@ void display_func(void)
 
 
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
@@ -342,7 +344,7 @@ void display_func(void)
 
 	}
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
@@ -400,7 +402,7 @@ void display_func(void)
 
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
@@ -498,6 +500,15 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
+
+		model = player_game_piece_meshes[collision_location_index].model_mat;
+		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
+		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
+
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
@@ -507,10 +518,9 @@ void display_func(void)
 
 
 		glPolygonMode(GL_FRONT, GL_FILL);
-
 		glEnable(GL_DEPTH_TEST);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
 
 		// Draw outline code from NeHe lesson 37:
@@ -526,10 +536,13 @@ void display_func(void)
 
 		glPolygonMode(GL_BACK, GL_FILL);
 		glCullFace(GL_BACK);
+
+		
 	}
 	else if (col_loc == enemy_game_piece)
 	{
 		vec3 outline_colour(0, 0, 1*s);
+
 
 		glDisable(GL_DEPTH_TEST);
 
@@ -575,6 +588,15 @@ void display_func(void)
 
 		glPolygonStipple(checkered_stipple_pattern);
 
+
+		model = enemy_game_piece_meshes[collision_location_index].model_mat;
+		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
+		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
+
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
@@ -587,7 +609,7 @@ void display_func(void)
 
 		glEnable(GL_DEPTH_TEST);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
 
 		// Draw outline code from NeHe lesson 37:
@@ -653,11 +675,16 @@ void mouse_func(int button, int state, int x, int y)
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
-				if (true == player_game_piece_meshes[i].intersect_AABB(main_camera.eye, ray))
+				glm::mat4 inverse = glm::inverse(player_game_piece_meshes[i].model_mat);
+				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
+				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
+				direction = glm::normalize(direction);
+
+				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
 					vec3 closest_intersection_point;
 
-					if (true == player_game_piece_meshes[i].intersect_triangles(main_camera.eye, ray, closest_intersection_point))
+					if (true == player_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
 						if (first_assignment)
 						{
@@ -669,8 +696,8 @@ void mouse_func(int button, int state, int x, int y)
 						}
 						else
 						{
-							vec3 c0 = main_camera.eye - closest_intersection_point;
-							vec3 c1 = main_camera.eye - collision_location;
+							vec3 c0 = vec3(start.x, start.y, start.z) - closest_intersection_point;
+							vec3 c1 = vec3(start.x, start.y, start.z) - collision_location;
 
 							if (length(c0) < length(c1))
 							{
@@ -680,17 +707,22 @@ void mouse_func(int button, int state, int x, int y)
 								collision_location_index = i;
 							}
 						}
-					}
+					}				
 				}
 			}
 
 			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 			{
-				if (true == enemy_game_piece_meshes[i].intersect_AABB(main_camera.eye, ray))
+				glm::mat4 inverse = glm::inverse(enemy_game_piece_meshes[i].model_mat);
+				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
+				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
+				direction = glm::normalize(direction);
+
+				if (true == enemy_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
 					vec3 closest_intersection_point;
 
-					if (true == enemy_game_piece_meshes[i].intersect_triangles(main_camera.eye, ray, closest_intersection_point))
+					if (true == enemy_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
 						if (first_assignment)
 						{
@@ -702,8 +734,8 @@ void mouse_func(int button, int state, int x, int y)
 						}
 						else
 						{
-							vec3 c0 = main_camera.eye - closest_intersection_point;
-							vec3 c1 = main_camera.eye - collision_location;
+							vec3 c0 = vec3(start.x, start.y, start.z) - closest_intersection_point;
+							vec3 c1 = vec3(start.x, start.y, start.z) - collision_location;
 
 							if (length(c0) < length(c1))
 							{
