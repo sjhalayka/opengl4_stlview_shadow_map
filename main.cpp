@@ -2,15 +2,15 @@
 #include "mesh.h"
 
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 
-	if(false == sphere_mesh.read_triangles_from_binary_stereo_lithography_file("sphere.stl"))
+	if (false == sphere_mesh.read_triangles_from_binary_stereo_lithography_file("sphere.stl"))
 	{
 		cout << "Error: Could not properly read file sphere.stl" << endl;
 		return 2;
 	}
-	
+
 	sphere_mesh.scale_mesh(1.0f); // radius == 0.5f;
 
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 
-		x *= 2.0f;	
+		x *= 2.0f;
 		x -= 1.0f;
 		y *= 2.0f;
 		y -= 1.0f;
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
 		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
 		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, dir*0.625f);
+		mat4 translate_mat = translate(identity_mat, dir * 0.625f);
 
 		mat4 transform = translate_mat * rot0_mat * rot1_mat;
 
@@ -108,9 +108,9 @@ int main(int argc, char **argv)
 
 
 
-	
+
 	glutInit(&argc, argv);
-	
+
 	if (false == init_opengl(win_x, win_y))
 		return 1;
 
@@ -137,18 +137,18 @@ void idle_func(void)
 	glutPostRedisplay();
 }
 
-bool init_opengl(const int &width, const int &height)
+bool init_opengl(const int& width, const int& height)
 {
 	win_x = width;
 	win_y = height;
 
-	if(win_x < 1)
+	if (win_x < 1)
 		win_x = 1;
 
-	if(win_y < 1)
+	if (win_y < 1)
 		win_y = 1;
 
-	glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Binary Stereo Lithography file viewer");
@@ -182,10 +182,10 @@ void reshape_func(int width, int height)
 	win_x = width;
 	win_y = height;
 
-	if(win_x < 1)
+	if (win_x < 1)
 		win_x = 1;
 
-	if(win_y < 1)
+	if (win_y < 1)
 		win_y = 1;
 
 	glutSetWindow(win_id);
@@ -258,7 +258,7 @@ void display_func(void)
 	glEnable(GL_DEPTH_TEST);
 
 	vec3 player_colour(1, 0, 0);
-	vec3 enemy_colour(0.75f, 0.75f, 0.75f);
+	vec3 enemy_colour(1, 1, 1);
 
 
 	shadow_map.use_program();
@@ -366,7 +366,7 @@ void display_func(void)
 	main_camera.calculate_camera_matrices(win_x, win_y);
 
 	model = mat4(1.0f);
-	view = main_camera.view_mat;	
+	view = main_camera.view_mat;
 	proj = main_camera.projection_mat;
 	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
 	lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
@@ -379,7 +379,7 @@ void display_func(void)
 	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
-	
+
 	lp = view * vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
 	lp_untransformed = vec4(lightPos, 0.0f);
@@ -454,13 +454,13 @@ void display_func(void)
 	}
 	else if (col_loc == player_game_piece)
 	{
-		vec3 outline_colour(0, 1*s, 0);
+		vec3 outline_colour(0, 1 * s, 0);
 
 		glDisable(GL_DEPTH_TEST);
 
 		glPolygonMode(GL_FRONT, GL_LINES);
 
-		GLubyte checkered_stipple_pattern[] = 
+		GLubyte checkered_stipple_pattern[] =
 		{
 			0x33,0x33,0x33,0x33,
 			0x33,0x33,0x33,0x33,
@@ -537,11 +537,11 @@ void display_func(void)
 		glPolygonMode(GL_BACK, GL_FILL);
 		glCullFace(GL_BACK);
 
-		
+
 	}
 	else if (col_loc == enemy_game_piece)
 	{
-		vec3 outline_colour(0, 0, 1*s);
+		vec3 outline_colour(0, 0, 1 * s);
 
 
 		glDisable(GL_DEPTH_TEST);
@@ -627,7 +627,7 @@ void display_func(void)
 		glCullFace(GL_BACK);
 	}
 
-	
+
 	glPointSize(4.0f);
 
 	glBegin(GL_POINTS);
@@ -653,7 +653,7 @@ void display_func(void)
 
 void keyboard_func(unsigned char key, int x, int y)
 {
-	switch(tolower(key))
+	switch (tolower(key))
 	{
 	case 'a':
 		break;
@@ -665,52 +665,62 @@ void keyboard_func(unsigned char key, int x, int y)
 
 void mouse_func(int button, int state, int x, int y)
 {
-	if(GLUT_LEFT_BUTTON == button)
+	if (GLUT_LEFT_BUTTON == button)
 	{
 		if (GLUT_DOWN == state)
 		{
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
-			bool first_assignment = true;
+			//bool first_assignment = true;
+			vec3 closest_intersection_point(1000000, 1000000, 1000000);
+			collision_location = closest_intersection_point;
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
-				glm::mat4 inverse = glm::inverse(player_game_piece_meshes[i].model_mat);
-				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
-				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
-				direction = glm::normalize(direction);
+				mat4 inv = inverse(player_game_piece_meshes[i].model_mat);
+				vec4 start = inv * vec4(main_camera.eye, 1.0);
+				vec4 direction = inv * vec4(ray, 0.0);
+				direction = normalize(direction);
 
 				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
-					vec3 closest_intersection_point;
-
 					if (true == player_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
-						if (first_assignment)
+						cout << "select player " << i << endl;
+
+						vec3 c0 = vec3(start) - closest_intersection_point;
+						vec3 c1 = vec3(start) - collision_location;
+
+						if (length(c0) < length(c1))
 						{
 							collision_location = closest_intersection_point;
-							first_assignment = false;
 
 							col_loc = player_game_piece;
 							collision_location_index = i;
 						}
-						else
-						{
-							vec3 c0 = vec3(start.x, start.y, start.z) - closest_intersection_point;
-							vec3 c1 = vec3(start.x, start.y, start.z) - collision_location;
+					}
 
-							if (length(c0) < length(c1))
-							{
-								collision_location = closest_intersection_point;
+					//float t = 0;
+					//vec4 sphere_location = inv*vec4(0, 0, 0, 0);
 
-								col_loc = player_game_piece;
-								collision_location_index = i;
-							}
-						}
-					}				
+					//if (true == line_sphere_intersect(start, direction, sphere_location, 0.5f, t))
+					//{
+					//	cout << "sphere collision" << endl;
+
+					//	vec3 closest_intersection_point = main_camera.eye + ray * t;
+
+					//	vec3 c0 = vec3(start) - closest_intersection_point;
+					//	vec3 c1 = vec3(start) - collision_location;
+
+					//	if (length(c0) < length(c1))
+					//	{
+					//		collision_location = closest_intersection_point;
+					//		col_loc = sphere;
+					//	}
+					//}
 				}
 			}
-
+			/*
 			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 			{
 				glm::mat4 inverse = glm::inverse(enemy_game_piece_meshes[i].model_mat);
@@ -748,53 +758,25 @@ void mouse_func(int button, int state, int x, int y)
 					}
 				}
 			}
+			*/
 
-			float t = 0;
 
-			if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
-			{
-				vec3 closest_intersection_point = main_camera.eye + ray * t;
-
-				if (first_assignment)
-				{
-					collision_location = closest_intersection_point;
-					first_assignment = false;
-
-					col_loc = sphere;
-				}
-				else
-				{
-					vec3 c0 = main_camera.eye - closest_intersection_point;
-					vec3 c1 = main_camera.eye - collision_location;
-
-					if (length(c0) < length(c1))
-					{
-						collision_location = closest_intersection_point;
-						col_loc = sphere;
-					}
-				}
-			}
-
-			if (first_assignment)
-			{
-				col_loc = background;
-			}
 
 			lmb_down = true;
 		}
 		else
 			lmb_down = false;
 	}
-	else if(GLUT_MIDDLE_BUTTON == button)
+	else if (GLUT_MIDDLE_BUTTON == button)
 	{
-		if(GLUT_DOWN == state)
+		if (GLUT_DOWN == state)
 			mmb_down = true;
 		else
 			mmb_down = false;
 	}
-	else if(GLUT_RIGHT_BUTTON == button)
+	else if (GLUT_RIGHT_BUTTON == button)
 	{
-		if(GLUT_DOWN == state)
+		if (GLUT_DOWN == state)
 			rmb_down = true;
 		else
 			rmb_down = false;
@@ -812,20 +794,20 @@ void motion_func(int x, int y)
 	int mouse_delta_x = mouse_x - prev_mouse_x;
 	int mouse_delta_y = prev_mouse_y - mouse_y;
 
-	if(true == lmb_down && (0 != mouse_delta_x || 0 != mouse_delta_y))
+	if (true == lmb_down && (0 != mouse_delta_x || 0 != mouse_delta_y))
 	{
-		main_camera.u -= static_cast<float>(mouse_delta_y)*u_spacer;
-		main_camera.v += static_cast<float>(mouse_delta_x)*v_spacer;
+		main_camera.u -= static_cast<float>(mouse_delta_y) * u_spacer;
+		main_camera.v += static_cast<float>(mouse_delta_x) * v_spacer;
 
 		main_camera.calculate_camera_matrices(win_x, win_y);
 	}
-	else if(true == rmb_down && (0 != mouse_delta_y))
+	else if (true == rmb_down && (0 != mouse_delta_y))
 	{
-		main_camera.w -= static_cast<float>(mouse_delta_y)*w_spacer;
+		main_camera.w -= static_cast<float>(mouse_delta_y) * w_spacer;
 
-		if(main_camera.w < 2.0f)
+		if (main_camera.w < 2.0f)
 			main_camera.w = 2.0f;
-		else if(main_camera.w > 20.0f)
+		else if (main_camera.w > 20.0f)
 			main_camera.w = 20.0f;
 
 		main_camera.calculate_camera_matrices(win_x, win_y);
