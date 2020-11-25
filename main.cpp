@@ -320,7 +320,8 @@ void display_func(void)
 
 	model = mat4(1.0f);
 	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
-
+	shadow = lightPV * model;
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
@@ -335,7 +336,8 @@ void display_func(void)
 	{
 		model = player_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((lightFrustum.getViewMatrix() * model)[0]), vec3((lightFrustum.getViewMatrix() * model)[1]), vec3((lightFrustum.getViewMatrix() * model)[2]));
-
+		shadow = lightPV * model;
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
@@ -349,7 +351,8 @@ void display_func(void)
 	{
 		model = enemy_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((lightFrustum.getViewMatrix() * model)[0]), vec3((lightFrustum.getViewMatrix() * model)[1]), vec3((lightFrustum.getViewMatrix() * model)[2]));
-
+		shadow = lightPV * model;
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
@@ -437,9 +440,11 @@ void display_func(void)
 
 	model = mat4(1.0f);
 	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+	shadow = lightPV * model;
 
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
 	draw_axis(shadow_map.get_program());
@@ -681,7 +686,7 @@ void mouse_func(int button, int state, int x, int y)
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
 			//bool first_assignment = true;
-			vec3 closest_intersection_point(1000000, 1000000, 1000000);
+			vec3 closest_intersection_point(1000, 1000, 1000);
 			collision_location = closest_intersection_point;
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
