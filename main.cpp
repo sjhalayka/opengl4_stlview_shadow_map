@@ -66,7 +66,6 @@ int main(int argc, char** argv)
 		player_game_piece_meshes[i].model_mat = transform;
 	}
 
-
 	for (size_t i = 0; i < 5; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
@@ -396,9 +395,11 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 1.0f, 1.0f, 1.0f);
 	model = mat4(1.0f);
 	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+	shadow = lightPV * model;
 
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
@@ -408,9 +409,11 @@ void display_func(void)
 	{
 		model = player_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+		shadow = lightPV * model;
 
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
@@ -421,9 +424,11 @@ void display_func(void)
 	{
 		model = enemy_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+		shadow = lightPV * model;
 
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
 	}
@@ -503,9 +508,11 @@ void display_func(void)
 
 		model = player_game_piece_meshes[collision_location_index].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+		shadow = lightPV * model;
 
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
 
@@ -591,9 +598,11 @@ void display_func(void)
 
 		model = enemy_game_piece_meshes[collision_location_index].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+		shadow = lightPV * model;
 
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
 
