@@ -47,7 +47,7 @@ void motion_func(int x, int y);
 void passive_motion_func(int x, int y);
 
 
-mt19937 mt_rand(static_cast<unsigned int>(time(0)));
+mt19937 mt_rand(0);// static_cast<unsigned int>(time(0)));
 
 vector<mesh> player_game_piece_meshes; 
 vector<mesh> enemy_game_piece_meshes;

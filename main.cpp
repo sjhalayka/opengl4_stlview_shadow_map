@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
 	game_piece_mesh.scale_mesh(0.25f);
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 1; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	}
 
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 0; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -268,18 +268,18 @@ void display_func(void)
 
 
 	mat4 model(1.0f);
-	mat4 mv = model * lightFrustum.getViewMatrix();
-	mat3 normal = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
-	mat4 mvp = lightFrustum.getProjectionMatrix() * mv;
+	mat4 view = lightFrustum.getViewMatrix();
+	mat4 proj = lightFrustum.getProjectionMatrix();
+
+	mat3 normal = mat3(vec3((lightFrustum.getViewMatrix() * model)[0]), vec3((lightFrustum.getViewMatrix() * model)[1]), vec3((lightFrustum.getViewMatrix() * model)[2]));
 	lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 	mat4 shadow = lightPV * model;
-	mat4 view = lightFrustum.getViewMatrix();
 
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelViewMatrix"), 1, GL_FALSE, &mv[0][0]);
-	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ProjectionMatrix"), 1, GL_FALSE, &proj[0][0]);
+	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 	vec4 lp = view * vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
@@ -327,18 +327,20 @@ void display_func(void)
 	// reset camera matrices
 	main_camera.calculate_camera_matrices(win_x, win_y);
 
-	mv = model * main_camera.view_mat;
-	normal = mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2]));
-	mvp = main_camera.projection_mat * mv;
+	model = mat4(1.0f);
+	view = main_camera.view_mat;	
+	proj = main_camera.projection_mat;
+	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
 	lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 	shadow = lightPV * model;
-	view = main_camera.view_mat;
 
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelViewMatrix"), 1, GL_FALSE, &mv[0][0]);
-	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "MVP"), 1, GL_FALSE, &mvp[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ViewMatrix"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ProjectionMatrix"), 1, GL_FALSE, &proj[0][0]);
+
+	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+
 	
 	lp = view * vec4(lightPos, 0.0f);
 	glUniform4f(glGetUniformLocation(shadow_map.get_program(), "LightPosition"), lp.x, lp.y, lp.z, lp.w);
