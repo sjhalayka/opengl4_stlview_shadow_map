@@ -645,7 +645,7 @@ void display_func(void)
 	glDisable(GL_DEPTH);
 	glPointSize(4.0f);
 
-	vec3 cl = collision_transform * vec4(collision_location, 1);
+	vec3 cl = collision_location;// collision_transform* vec4(collision_location, 1);
 
 	glBegin(GL_POINTS);
 	
@@ -691,6 +691,15 @@ void mouse_func(int button, int state, int x, int y)
 			float t = 0;
 
 			bool first_assignment = true;
+			mat4 collision_transform(1.0f);
+
+			if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
+			{
+				collision_location = main_camera.eye + ray * t;
+				col_loc = sphere;
+				first_assignment = false;
+				collision_transform = mat4(1.0f);
+			}
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
@@ -698,32 +707,6 @@ void mouse_func(int button, int state, int x, int y)
 				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
 				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
 				direction = glm::normalize(direction);
-
-				if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
-				{
-					vec3 closest_intersection_point = main_camera.eye + ray * t;
-
-					if (first_assignment)
-					{
-						collision_location = closest_intersection_point;
-						col_loc = sphere;
-						first_assignment = false;
-						collision_transform = mat4(1.0f);
-					}
-					else
-					{
-						vec3 c0 = vec3(main_camera.eye) - closest_intersection_point;
-						vec3 c1 = vec3(main_camera.eye) - collision_location;
-
-						if (length(c0) < length(c1))
-						{
-							collision_location = closest_intersection_point;
-							col_loc = sphere;
-							collision_transform = mat4(1.0f);
-						}
-					}
-				}
-
 
 				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
@@ -762,7 +745,6 @@ void mouse_func(int button, int state, int x, int y)
 			}
 
 
-			/*
 			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 			{
 				glm::mat4 inverse = glm::inverse(enemy_game_piece_meshes[i].model_mat);
@@ -776,6 +758,8 @@ void mouse_func(int button, int state, int x, int y)
 
 					if (true == enemy_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
+						closest_intersection_point = enemy_game_piece_meshes[i].model_mat * vec4(closest_intersection_point, 1);
+
 						if (first_assignment)
 						{
 							collision_location = closest_intersection_point;
@@ -784,6 +768,7 @@ void mouse_func(int button, int state, int x, int y)
 							collision_location_index = i;
 
 							first_assignment = false;
+							collision_transform = inverse;
 						}
 						else
 						{
@@ -796,21 +781,20 @@ void mouse_func(int button, int state, int x, int y)
 
 								col_loc = enemy_game_piece;
 								collision_location_index = i;
+								collision_transform = inverse;
 							}
 						}
 					}
 				}
 			}
 
-			*/
-
-
+			collision_location = collision_transform* vec4(collision_location, 1);
 
 			if (first_assignment)
 			{
+				collision_location = vec3(0, 0, 0);
 				col_loc = background;
 			}
-
 
 			lmb_down = true;
 		}

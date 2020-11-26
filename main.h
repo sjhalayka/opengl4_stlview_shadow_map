@@ -58,7 +58,7 @@ enum possible_collision_locations { player_game_piece, enemy_game_piece, sphere,
 possible_collision_locations col_loc = background;
 size_t collision_location_index = 0;
 
-mat4 collision_transform(1.0f);
+
 
 vector<triangle> triangles;
 vector<vec3> face_normals;
