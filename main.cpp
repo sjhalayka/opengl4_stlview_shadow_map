@@ -703,10 +703,10 @@ void mouse_func(int button, int state, int x, int y)
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
-				glm::mat4 inverse = glm::inverse(player_game_piece_meshes[i].model_mat);
-				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
-				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
-				direction = glm::normalize(direction);
+				mat4 inv = inverse(player_game_piece_meshes[i].model_mat);
+				vec4 start = inv * vec4(main_camera.eye, 1.0);
+				vec4 direction = inv * vec4(ray, 0.0);
+				direction = normalize(direction);
 
 				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
@@ -724,7 +724,7 @@ void mouse_func(int button, int state, int x, int y)
 							collision_location_index = i;
 
 							first_assignment = false;
-							collision_transform = inverse;
+							collision_transform = inv;
 						}
 						else
 						{
@@ -737,7 +737,7 @@ void mouse_func(int button, int state, int x, int y)
 
 								col_loc = player_game_piece;
 								collision_location_index = i;
-								collision_transform = inverse;
+								collision_transform = inv;
 							}
 						}
 					}
@@ -747,10 +747,10 @@ void mouse_func(int button, int state, int x, int y)
 
 			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 			{
-				glm::mat4 inverse = glm::inverse(enemy_game_piece_meshes[i].model_mat);
-				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
-				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
-				direction = glm::normalize(direction);
+				mat4 inv = inverse(enemy_game_piece_meshes[i].model_mat);
+				vec4 start = inv * vec4(main_camera.eye, 1.0);
+				vec4 direction = inv * vec4(ray, 0.0);
+				direction = normalize(direction);
 
 				if (true == enemy_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
@@ -768,7 +768,7 @@ void mouse_func(int button, int state, int x, int y)
 							collision_location_index = i;
 
 							first_assignment = false;
-							collision_transform = inverse;
+							collision_transform = inv;
 						}
 						else
 						{
@@ -781,7 +781,7 @@ void mouse_func(int button, int state, int x, int y)
 
 								col_loc = enemy_game_piece;
 								collision_location_index = i;
-								collision_transform = inverse;
+								collision_transform = inv;
 							}
 						}
 					}
