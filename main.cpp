@@ -685,55 +685,59 @@ void mouse_func(int button, int state, int x, int y)
 		{
 			ray = screen_coords_to_world_coords(x, y, win_x, win_y);
 
-			//bool first_assignment = true;
-			vec3 closest_intersection_point(1000, 1000, 1000);
-			collision_location = closest_intersection_point;
+			float t = 0;
+
+			bool first_assignment = true;
+
+			if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
+			{
+				collision_location = main_camera.eye + ray * t;
+
+				col_loc = sphere;
+
+				first_assignment = false;
+			}
 
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
-				mat4 inv = inverse(player_game_piece_meshes[i].model_mat);
-				vec4 start = inv * vec4(main_camera.eye, 1.0);
-				vec4 direction = inv * vec4(ray, 0.0);
-				direction = normalize(direction);
+				glm::mat4 inverse = glm::inverse(player_game_piece_meshes[i].model_mat);
+				glm::vec4 start = inverse * glm::vec4(main_camera.eye, 1.0);
+				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
+				direction = glm::normalize(direction);
 
 				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
+					vec3 closest_intersection_point;
+
 					if (true == player_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
-						cout << "select player " << i << endl;
-
-						vec3 c0 = vec3(start) - closest_intersection_point;
-						vec3 c1 = vec3(start) - collision_location;
-
-						if (length(c0) < length(c1))
+						if (first_assignment)
 						{
 							collision_location = closest_intersection_point;
 
 							col_loc = player_game_piece;
 							collision_location_index = i;
+
+							first_assignment = false;
+						}
+						else
+						{
+							vec3 c0 = vec3(main_camera.eye) - closest_intersection_point;
+							vec3 c1 = vec3(main_camera.eye) - collision_location;
+
+							if (length(c0) < length(c1))
+							{
+								collision_location = closest_intersection_point;
+
+								col_loc = player_game_piece;
+								collision_location_index = i;
+							}
 						}
 					}
-
-					//float t = 0;
-					//vec4 sphere_location = inv*vec4(0, 0, 0, 0);
-
-					//if (true == line_sphere_intersect(start, direction, sphere_location, 0.5f, t))
-					//{
-					//	cout << "sphere collision" << endl;
-
-					//	vec3 closest_intersection_point = main_camera.eye + ray * t;
-
-					//	vec3 c0 = vec3(start) - closest_intersection_point;
-					//	vec3 c1 = vec3(start) - collision_location;
-
-					//	if (length(c0) < length(c1))
-					//	{
-					//		collision_location = closest_intersection_point;
-					//		col_loc = sphere;
-					//	}
-					//}
 				}
 			}
+
+
 			/*
 			for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 			{
@@ -751,15 +755,16 @@ void mouse_func(int button, int state, int x, int y)
 						if (first_assignment)
 						{
 							collision_location = closest_intersection_point;
-							first_assignment = false;
 
 							col_loc = enemy_game_piece;
 							collision_location_index = i;
+
+							first_assignment = false;
 						}
 						else
 						{
-							vec3 c0 = vec3(start.x, start.y, start.z) - closest_intersection_point;
-							vec3 c1 = vec3(start.x, start.y, start.z) - collision_location;
+							vec3 c0 = vec3(main_camera.eye) - closest_intersection_point;
+							vec3 c1 = vec3(main_camera.eye) - collision_location;
 
 							if (length(c0) < length(c1))
 							{
@@ -772,8 +777,15 @@ void mouse_func(int button, int state, int x, int y)
 					}
 				}
 			}
+
 			*/
 
+
+
+			if (first_assignment)
+			{
+				col_loc = background;
+			}
 
 
 			lmb_down = true;
