@@ -788,7 +788,7 @@ void mouse_func(int button, int state, int x, int y)
 				}
 			}
 
-			collision_location = collision_transform* vec4(collision_location, 1);
+			collision_location = collision_transform*vec4(collision_location, 1);
 
 			if (first_assignment)
 			{
