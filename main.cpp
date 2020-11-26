@@ -203,20 +203,19 @@ void display_func(void)
 {
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
-
-
-	Frustum lightFrustum;
-
-	GLuint shadowFBO, pass1Index, pass2Index;
-
+	
 	size_t shadowMapWidth = 8192;
 	size_t shadowMapHeight = 8192;
 
 	mat4 lightPV, shadowBias;
 
+	Frustum lightFrustum;
+
+	GLuint shadowFBO, pass1Index, pass2Index;
 	GLfloat border[] = { 1.0f, 0.0f,0.0f,0.0f };
 	// The depth buffer texture
 	GLuint depthTex;
+
 	glGenTextures(1, &depthTex);
 	glBindTexture(GL_TEXTURE_2D, depthTex);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, static_cast<GLsizei>(shadowMapWidth), static_cast<GLsizei>(shadowMapHeight));
@@ -437,7 +436,7 @@ void display_func(void)
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
 
 		model = enemy_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
@@ -632,7 +631,7 @@ void display_func(void)
 
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
-		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
 
@@ -645,7 +644,6 @@ void display_func(void)
 
 
 		glPolygonMode(GL_FRONT, GL_FILL);
-
 		glEnable(GL_DEPTH_TEST);
 
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
@@ -664,6 +662,7 @@ void display_func(void)
 
 		glPolygonMode(GL_BACK, GL_FILL);
 		glCullFace(GL_BACK);
+
 	}
 
 
@@ -671,7 +670,7 @@ void display_func(void)
 	glDisable(GL_DEPTH);
 	glPointSize(4.0f);
 
-	vec3 cl = collision_location;// collision_transform* vec4(collision_location, 1);
+	vec3 cl = collision_location;
 
 	glBegin(GL_POINTS);
 	

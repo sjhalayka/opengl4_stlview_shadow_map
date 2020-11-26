@@ -77,6 +77,11 @@ vertex_fragment_shader shadow_map;
 
 
 
+
+
+
+
+
 uv_camera main_camera;
 
 GLint win_id = 0;
