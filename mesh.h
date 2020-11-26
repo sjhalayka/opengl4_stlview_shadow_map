@@ -61,17 +61,31 @@ public:
 	void scale_mesh(float max_extent);
 	void rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec);
 
-	void draw(GLint render_shader_program,
-		int win_x,
-		int win_y
-		//uv_camera& main_camera,
-		//GLint proj_matrix_uniform_location,
-		//GLint view_matrix_uniform_location,
-		//GLint use_specular_uniform_location,
-		//bool use_specular
-	);
+	void draw(GLint render_shader_program, int win_x, int win_y);
 
 	void draw_AABB(void);
+
+	void set_transform(vec3 dir, float displacement_factor)
+	{
+		dir = normalize(dir);
+
+		float yaw = 0.0f;
+
+		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+			yaw = 0.0f;
+		else
+			yaw = atan2f(dir.x, dir.z);
+
+		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+
+		static const mat4 identity_mat = mat4(1.0f);
+
+		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
+		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
+		mat4 translate_mat = translate(identity_mat, dir * displacement_factor);
+
+		model_mat = translate_mat * rot0_mat * rot1_mat;
+	}
 
 
 	bool intersect_triangles(vec3 ray_origin, vec3 ray_dir, vec3& closest_intersection_point)

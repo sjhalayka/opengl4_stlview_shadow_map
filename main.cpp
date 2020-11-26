@@ -46,24 +46,7 @@ int main(int argc, char** argv)
 		vec3 dir(x, y, z);
 		dir = normalize(dir);
 
-		float yaw = 0.0f;
-
-		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
-			yaw = 0.0f;
-		else
-			yaw = atan2f(dir.x, dir.z);
-
-		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
-
-		static const mat4 identity_mat = mat4(1.0f);
-
-		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
-		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, dir * 0.625f);
-
-		mat4 transform = translate_mat * rot0_mat * rot1_mat;
-
-		player_game_piece_meshes[i].model_mat = transform;
+		player_game_piece_meshes[i].set_transform(dir, 0.625f); // 1/2 + .25/2
 	}
 
 	for (size_t i = 0; i < 5; i++)
@@ -85,26 +68,8 @@ int main(int argc, char** argv)
 		vec3 dir(x, y, z);
 		dir = normalize(dir);
 
-		float yaw = 0.0f;
-
-		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
-			yaw = 0.0f;
-		else
-			yaw = atan2f(dir.x, dir.z);
-
-		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
-
-		static const mat4 identity_mat = mat4(1.0f);
-
-		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
-		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, dir * 0.625f);
-
-		mat4 transform = translate_mat * rot0_mat * rot1_mat;
-
-		enemy_game_piece_meshes[i].model_mat = transform;
+		enemy_game_piece_meshes[i].set_transform(dir, 0.625f);
 	}
-
 
 
 
@@ -225,7 +190,7 @@ void display_func(void)
 {
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
-
+	
 	mat4 lightPV, shadowBias;
 	Frustum lightFrustum;
 
