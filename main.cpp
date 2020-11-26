@@ -284,7 +284,7 @@ void display_func(void)
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
 
 
-	mat4 model(1.0f);
+	mat4 model = mat4(1.0f);
 	mat4 view = lightFrustum.getViewMatrix();
 	mat4 proj = lightFrustum.getProjectionMatrix();
 
@@ -555,7 +555,6 @@ void display_func(void)
 	{
 		vec3 outline_colour(0, 0, 1 * s);
 
-
 		glDisable(GL_DEPTH_TEST);
 
 		glPolygonMode(GL_FRONT, GL_LINES);
@@ -642,6 +641,8 @@ void display_func(void)
 	}
 
 
+
+	glDisable(GL_DEPTH);
 	glPointSize(4.0f);
 
 	glBegin(GL_POINTS);
@@ -699,7 +700,6 @@ void mouse_func(int button, int state, int x, int y)
 				if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
 				{
 					vec3 closest_intersection_point = main_camera.eye + ray * t;
-
 
 					if (first_assignment)
 					{
