@@ -689,15 +689,6 @@ void mouse_func(int button, int state, int x, int y)
 
 			bool first_assignment = true;
 
-			if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
-			{
-				collision_location = main_camera.eye + ray * t;
-
-				col_loc = sphere;
-
-				first_assignment = false;
-			}
-
 			for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 			{
 				glm::mat4 inverse = glm::inverse(player_game_piece_meshes[i].model_mat);
@@ -705,12 +696,39 @@ void mouse_func(int button, int state, int x, int y)
 				glm::vec4 direction = inverse * glm::vec4(ray, 0.0);
 				direction = glm::normalize(direction);
 
+				if (true == line_sphere_intersect(main_camera.eye, ray, vec3(0, 0, 0), 0.5f, t))
+				{
+					vec3 closest_intersection_point = main_camera.eye + ray * t;
+
+
+					if (first_assignment)
+					{
+						collision_location = closest_intersection_point;
+						col_loc = sphere;
+						first_assignment = false;
+					}
+					else
+					{
+						vec3 c0 = vec3(main_camera.eye) - closest_intersection_point;
+						vec3 c1 = vec3(main_camera.eye) - collision_location;
+
+						if (length(c0) < length(c1))
+						{
+							collision_location = closest_intersection_point;
+							col_loc = sphere;
+						}
+					}
+				}
+
+
 				if (true == player_game_piece_meshes[i].intersect_AABB(start, direction))
 				{
 					vec3 closest_intersection_point;
 
 					if (true == player_game_piece_meshes[i].intersect_triangles(start, direction, closest_intersection_point))
 					{
+						closest_intersection_point = player_game_piece_meshes[i].model_mat * vec4(closest_intersection_point, 1);
+
 						if (first_assignment)
 						{
 							collision_location = closest_intersection_point;
