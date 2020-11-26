@@ -645,9 +645,11 @@ void display_func(void)
 	glDisable(GL_DEPTH);
 	glPointSize(4.0f);
 
-	glBegin(GL_POINTS);
+	vec3 cl = collision_transform * vec4(collision_location, 1);
 
-	glVertex3f(collision_location.x, collision_location.y, collision_location.z);
+	glBegin(GL_POINTS);
+	
+	glVertex3f(cl.x, cl.y, cl.z);
 
 	glEnd();
 
@@ -706,6 +708,7 @@ void mouse_func(int button, int state, int x, int y)
 						collision_location = closest_intersection_point;
 						col_loc = sphere;
 						first_assignment = false;
+						collision_transform = mat4(1.0f);
 					}
 					else
 					{
@@ -716,6 +719,7 @@ void mouse_func(int button, int state, int x, int y)
 						{
 							collision_location = closest_intersection_point;
 							col_loc = sphere;
+							collision_transform = mat4(1.0f);
 						}
 					}
 				}
@@ -737,6 +741,7 @@ void mouse_func(int button, int state, int x, int y)
 							collision_location_index = i;
 
 							first_assignment = false;
+							collision_transform = inverse;
 						}
 						else
 						{
@@ -749,6 +754,7 @@ void mouse_func(int button, int state, int x, int y)
 
 								col_loc = player_game_piece;
 								collision_location_index = i;
+								collision_transform = inverse;
 							}
 						}
 					}
