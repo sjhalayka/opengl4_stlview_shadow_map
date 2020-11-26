@@ -794,6 +794,7 @@ void mouse_func(int button, int state, int x, int y)
 			{
 				collision_location = vec3(0, 0, 0);
 				col_loc = background;
+				collision_transform = mat4(1.0f);
 			}
 
 			lmb_down = true;

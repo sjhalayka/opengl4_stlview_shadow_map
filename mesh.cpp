@@ -216,6 +216,16 @@ bool mesh::read_triangles_from_binary_stereo_lithography_file(const char *const 
 	if(header_size != in.gcount())
 		return false;
 
+	if (tolower(buffer[0]) == 's' &&
+		tolower(buffer[1]) == 'o' &&
+		tolower(buffer[2]) == 'l' &&
+		tolower(buffer[3]) == 'i' &&
+		tolower(buffer[4]) == 'd')
+	{
+		return false;
+	}
+
+
 	// Read number of triangles.
 	in.read(reinterpret_cast<char *>(&num_triangles), sizeof(unsigned int));
 	
