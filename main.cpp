@@ -406,10 +406,11 @@ void display_func(void)
 
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
+
 		model = player_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
 		shadow = lightPV * model;
@@ -419,12 +420,25 @@ void display_func(void)
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+
+		glCullFace(GL_FRONT);
+		glPolygonMode(GL_BACK, GL_LINE);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
+
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glPolygonMode(GL_BACK, GL_FILL);
+		glCullFace(GL_BACK);
 	}
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.5f, 0.5f, 0.5f);
+
 		model = enemy_game_piece_meshes[i].model_mat;
 		normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
 		shadow = lightPV * model;
@@ -434,6 +448,18 @@ void display_func(void)
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
 		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+
+		glCullFace(GL_FRONT);
+		glPolygonMode(GL_BACK, GL_LINE);
+
+		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
+
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glPolygonMode(GL_BACK, GL_FILL);
+		glCullFace(GL_BACK);
 	}
 
 
