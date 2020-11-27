@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 		return 2;
 	}
 
-	sphere_mesh.scale_mesh(1.0f); // radius == 0.5f;
+	sphere_mesh.scale_mesh(sphere_scale); // radius == 0.5f;
 
 
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(0.25f);
+	game_piece_mesh.scale_mesh(game_piece_scale);
 
 	for (size_t i = 0; i < 5; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
@@ -38,8 +38,7 @@ int main(int argc, char** argv)
 		vec3 left = normalize(cross(dir, dir2));
 		vec3 tangent = cross(dir, left);
 
-		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, 0.625f);
-		//player_game_piece_meshes[i].set_transform(dir, 0.625f); // 1/2 + .25/2
+		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale*0.5f + game_piece_scale*0.5f); // 1/2 + .25/2
 	}
 
 	for (size_t i = 0; i < 5; i++)
@@ -53,7 +52,7 @@ int main(int argc, char** argv)
 		vec3 left = normalize(cross(dir, dir2));
 		vec3 tangent = cross(dir, left);
 
-		enemy_game_piece_meshes[i].init_geodesic(dir, left, tangent, 0.625f);
+		enemy_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale * 0.5f + game_piece_scale * 0.5f); // 1/2 + .25/2
 	}
 
 
@@ -87,21 +86,14 @@ void idle_func(void)
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
-	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-	{
-		static const float real2pi = static_cast<float>(2.0f * glm::pi<float>());
-		float x = 0.1;// fmodf(elapsed.count(), real2pi);
+	float x = elapsed.count() / 1000.0f;
+	x *= 0.01;
 
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 		player_game_piece_meshes[i].proceed_geodesic(x);
-	}
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-	{
-		static const float real2pi = static_cast<float>(2.0f * glm::pi<float>());
-		float x = 0.1;// fmodf(elapsed.count(), real2pi);
-
 		enemy_game_piece_meshes[i].proceed_geodesic(x);
-	}
 
 	glutPostRedisplay();
 }

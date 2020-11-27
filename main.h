@@ -72,7 +72,8 @@ std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_re
 vertex_fragment_shader shadow_map;
 
 
-
+float sphere_scale = 1.0f;
+float game_piece_scale = 0.5f;
 
 
 
