@@ -32,21 +32,14 @@ int main(int argc, char** argv)
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
-		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
-		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
-		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		vec3 dir = get_pseudorandom_unit_direction();
+		vec3 dir2 = get_pseudorandom_unit_direction();
 
-		x *= 2.0f;
-		x -= 1.0f;
-		y *= 2.0f;
-		y -= 1.0f;
-		z *= 2.0f;
-		z -= 1.0f;
+		vec3 left = normalize(cross(dir, dir2));
+		vec3 tangent = cross(dir, left);
 
-		vec3 dir(x, y, z);
-		dir = normalize(dir);
-
-		player_game_piece_meshes[i].set_transform(dir, 0.625f); // 1/2 + .25/2
+		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, 0.625f);
+		//player_game_piece_meshes[i].set_transform(dir, 0.625f); // 1/2 + .25/2
 	}
 
 	for (size_t i = 0; i < 5; i++)
@@ -54,21 +47,13 @@ int main(int argc, char** argv)
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
 	{
-		float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
-		float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
-		float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+		vec3 dir = get_pseudorandom_unit_direction();
+		vec3 dir2 = get_pseudorandom_unit_direction();
 
-		x *= 2.0f;
-		x -= 1.0f;
-		y *= 2.0f;
-		y -= 1.0f;
-		z *= 2.0f;
-		z -= 1.0f;
+		vec3 left = normalize(cross(dir, dir2));
+		vec3 tangent = cross(dir, left);
 
-		vec3 dir(x, y, z);
-		dir = normalize(dir);
-
-		enemy_game_piece_meshes[i].set_transform(dir, 0.625f);
+		enemy_game_piece_meshes[i].init_geodesic(dir, left, tangent, 0.625f);
 	}
 
 
@@ -98,6 +83,26 @@ int main(int argc, char** argv)
 
 void idle_func(void)
 {
+	// do movement here
+	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
+
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	{
+		static const float real2pi = static_cast<float>(2.0f * glm::pi<float>());
+		float x = 0.1;// fmodf(elapsed.count(), real2pi);
+
+		player_game_piece_meshes[i].proceed_geodesic(x);
+	}
+
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	{
+		static const float real2pi = static_cast<float>(2.0f * glm::pi<float>());
+		float x = 0.1;// fmodf(elapsed.count(), real2pi);
+
+		enemy_game_piece_meshes[i].proceed_geodesic(x);
+	}
+
 	glutPostRedisplay();
 }
 

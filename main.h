@@ -112,9 +112,24 @@ GLuint      points_buffer = 0;
 
 
 
+vec3 get_pseudorandom_unit_direction(void)
+{
+	float x = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+	float y = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
+	float z = static_cast<float>(mt_rand()) / static_cast<float>(static_cast<long unsigned int>(-1));
 
+	x *= 2.0f;
+	x -= 1.0f;
+	y *= 2.0f;
+	y -= 1.0f;
+	z *= 2.0f;
+	z -= 1.0f;
 
+	vec3 dir(x, y, z);
+	dir = normalize(dir);
 
+	return dir;
+}
 
 vec3 screen_coords_to_world_coords(const int x, const int y, const int screen_width, const int screen_height)
 {

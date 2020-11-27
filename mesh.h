@@ -65,24 +65,49 @@ public:
 
 	void draw_AABB(void);
 
-	void set_transform(vec3 dir, float displacement_factor)
+
+	vec3 geodesic_dir;
+	vec3 geodesic_left;
+	vec3 geodesic_tangent;
+	float displacement;
+
+	void init_geodesic(vec3 dir, vec3 left, vec3 tangent, float displacement_factor)
 	{
-		dir = normalize(dir);
+		geodesic_dir = dir;
+		geodesic_left = left;
+		geodesic_tangent = tangent;
+		displacement = displacement_factor;
+
+		set_transform();
+	}
+
+	void proceed_geodesic(float elapsed_time)
+	{
+		geodesic_dir = geodesic_dir * cos(elapsed_time) + geodesic_tangent * sin(elapsed_time);
+		geodesic_tangent = normalize(cross(geodesic_dir, geodesic_left));
+
+		set_transform();
+	}
+
+
+	void set_transform(void)
+	{
+		vec3 temp_dir = normalize(geodesic_dir);
 
 		float yaw = 0.0f;
 
-		if (fabsf(dir.x) < 0.00001 && fabsf(dir.z) < 0.00001)
+		if (fabsf(temp_dir.x) < 0.00001 && fabsf(temp_dir.z) < 0.00001)
 			yaw = 0.0f;
 		else
-			yaw = atan2f(dir.x, dir.z);
+			yaw = atan2f(temp_dir.x, temp_dir.z);
 
-		float pitch = -atan2f(dir.y, sqrt(dir.x * dir.x + dir.z * dir.z));
+		float pitch = -atan2f(temp_dir.y, sqrt(temp_dir.x * temp_dir.x + temp_dir.z * temp_dir.z));
 
 		static const mat4 identity_mat = mat4(1.0f);
 
 		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
 		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, dir * displacement_factor);
+		mat4 translate_mat = translate(identity_mat, temp_dir * displacement);
 
 		model_mat = translate_mat * rot0_mat * rot1_mat;
 	}
