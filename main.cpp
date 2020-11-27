@@ -87,7 +87,7 @@ void idle_func(void)
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
 	float x = elapsed.count() / 1000.0f;
-	x *= 0.01;
+	x *= 0.01f;
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 		player_game_piece_meshes[i].proceed_geodesic(x);
@@ -109,7 +109,7 @@ bool init_opengl(const int& width, const int& height)
 	if (win_y < 1)
 		win_y = 1;
 
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Binary Stereo Lithography file viewer");
@@ -188,6 +188,14 @@ void display_func(void)
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_POLYGON_SMOOTH);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
 	mat4 lightPV, shadowBias;
 	Frustum lightFrustum;
 
@@ -346,6 +354,9 @@ void display_func(void)
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
+
+
+
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
@@ -401,6 +412,28 @@ void display_func(void)
 		glCullFace(GL_BACK);
 	}
 
+
+	// Draw alpha channel stuff last
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 0.0f);
+	model = mat4(1.0f);
+	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
+	shadow = lightPV * model;
+
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+
+	glCullFace(GL_FRONT);
+	glPolygonMode(GL_BACK, GL_LINE);
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
+
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+	glPolygonMode(GL_BACK, GL_FILL);
+	glCullFace(GL_BACK);
 
 
 	model = mat4(1.0f);
