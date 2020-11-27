@@ -89,11 +89,11 @@ void idle_func(void)
 	float x = elapsed.count() / 1000.0f;
 	x *= 0.01f;
 
-	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-		player_game_piece_meshes[i].proceed_geodesic(x);
+	//for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	//	player_game_piece_meshes[i].proceed_geodesic(x);
 
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-		enemy_game_piece_meshes[i].proceed_geodesic(x);
+	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	//	enemy_game_piece_meshes[i].proceed_geodesic(x);
 
 	glutPostRedisplay();
 }
@@ -187,14 +187,7 @@ void display_func(void)
 {
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_POLYGON_SMOOTH);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
 	mat4 lightPV, shadowBias;
 	Frustum lightFrustum;
@@ -202,6 +195,12 @@ void display_func(void)
 	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_POLYGON_SMOOTH);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
 
 	vec3 player_colour(1, 0, 0);
 	vec3 enemy_colour(1, 1, 1);
@@ -413,6 +412,12 @@ void display_func(void)
 	}
 
 
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+
 	// Draw alpha channel stuff last
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 0.0f);
 	model = mat4(1.0f);
@@ -434,6 +439,10 @@ void display_func(void)
 
 	glPolygonMode(GL_BACK, GL_FILL);
 	glCullFace(GL_BACK);
+
+	glDisable(GL_BLEND);
+	//glDisable(GL_POLYGON_SMOOTH);
+	//glDisable(GL_LINE_SMOOTH);
 
 
 	model = mat4(1.0f);
