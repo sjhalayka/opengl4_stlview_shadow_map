@@ -86,14 +86,14 @@ void idle_func(void)
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
-	float x = fmodf(elapsed.count() / 1000.0f, 1.0f);
-	x *= 0.01f;
+	float x = elapsed.count() / 1000.0f * 2.0f*glm::pi<float>();
+	x *= 0.001f;
 
-	//for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-	//	player_game_piece_meshes[i].proceed_geodesic(x);
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+		player_game_piece_meshes[i].proceed_geodesic(x);
 
-	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-	//	enemy_game_piece_meshes[i].proceed_geodesic(x);
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+		enemy_game_piece_meshes[i].proceed_geodesic(x);
 
 	glutPostRedisplay();
 }
@@ -644,22 +644,6 @@ void display_func(void)
 	glVertex3f(cl.x, cl.y, cl.z);
 
 	glEnd();
-
-
-	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-	{
-		player_game_piece_meshes[i].draw_tangent();
-	}
-
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-	{
-		enemy_game_piece_meshes[i].draw_tangent();
-	}
-
-
-
-
-
 
 	glFlush();
 	glutSwapBuffers();
