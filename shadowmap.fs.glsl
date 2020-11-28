@@ -14,6 +14,7 @@ uniform int flat_colour = 0;
 vec3 LightIntensity = vec3(1.0, 1.0, 1.0);
 
 uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
+
 vec3 MaterialKs = vec3(1.0, 0.5, 0.0);
 vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
 float MaterialShininess = 100.0;
@@ -99,6 +100,20 @@ void shadeWithShadow()
 
         frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
+
+    /*
+    // posterize https://www.geeks3d.com/20091027/shader-library-posterization-post-processing-effect-glsl/
+        float gamma = 1.0; // 0.6
+    float numColors = 4.0; // 8.0
+
+    vec3 c = frag_colour.rgb;
+    c = pow(c, vec3(gamma, gamma, gamma));
+    c = c * numColors;
+    c = floor(c);
+    c = c / numColors;
+    c = pow(c, vec3(1.0/gamma));
+    frag_colour = vec4(c, 1.0);
+    */
 }
 
 subroutine (RenderPassType)

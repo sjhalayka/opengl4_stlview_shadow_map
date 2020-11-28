@@ -55,16 +55,27 @@ public:
 
 	vec3 min_location, max_location;
 
+	void draw_tangent(void)
+	{
+		vec3 centre = model_mat * vec4((max_location + min_location) / 2.0f, 1.0f);
+		vec3 tangent = geodesic_tangent;
+
+		glBegin(GL_LINES);
+
+		glVertex3f(centre.x, centre.y, centre.z);
+		glVertex3f(centre.x + tangent.x, centre.y + tangent.y, centre.z + tangent.z);
+
+		glEnd();
+	}
+
 	void calc_AABB_min_max_locations(void);
 
 	bool read_triangles_from_binary_stereo_lithography_file(const char* const file_name);
 	void scale_mesh(float max_extent);
-	void rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec);
 
 	void draw(GLint render_shader_program, int win_x, int win_y);
 
 	void draw_AABB(void);
-
 
 	vec3 geodesic_dir;
 	vec3 geodesic_left;
@@ -105,11 +116,16 @@ public:
 
 		static const mat4 identity_mat = mat4(1.0f);
 
-		mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
-		mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, temp_dir * displacement);
+		const mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
+		const mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
+		
+		const mat4 translate_mat = translate(identity_mat, temp_dir * displacement);
 
-		model_mat = translate_mat * rot0_mat * rot1_mat;
+		const vec3 tangent_transformed = normalize((rot0_mat * rot1_mat) * vec4(normalize(geodesic_tangent), 0.0f));
+
+		const mat4 rot2_mat = rotate(identity_mat, acos(dot(normalize(geodesic_tangent), tangent_transformed)), vec3(0.0, 0.0, 1.0));
+
+		model_mat = translate_mat  * rot0_mat * rot1_mat * rot2_mat;
 	}
 
 

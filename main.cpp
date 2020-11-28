@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 		vec3 left = normalize(cross(dir, dir2));
 		vec3 tangent = cross(dir, left);
 
-		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale*0.5f + game_piece_scale*0.5f); // 1/2 + .25/2
+		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale * 0.5f + game_piece_scale * 0.5f); // 1/2 + .25/2
 	}
 
 	for (size_t i = 0; i < 5; i++)
@@ -86,7 +86,7 @@ void idle_func(void)
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
-	float x = elapsed.count() / 1000.0f;
+	float x = fmodf(elapsed.count() / 1000.0f, 1.0f);
 	x *= 0.01f;
 
 	//for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -195,11 +195,6 @@ void display_func(void)
 	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_POLYGON_SMOOTH);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
 
 	vec3 player_colour(1, 0, 0);
@@ -412,13 +407,6 @@ void display_func(void)
 	}
 
 
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-
-	// Draw alpha channel stuff last
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0.0f, 0.0f, 0.0f);
 	model = mat4(1.0f);
 	normal = mat3(vec3((view * model)[0]), vec3((view * model)[1]), vec3((view * model)[2]));
@@ -440,9 +428,6 @@ void display_func(void)
 	glPolygonMode(GL_BACK, GL_FILL);
 	glCullFace(GL_BACK);
 
-	glDisable(GL_BLEND);
-	//glDisable(GL_POLYGON_SMOOTH);
-	//glDisable(GL_LINE_SMOOTH);
 
 
 	model = mat4(1.0f);
@@ -655,13 +640,21 @@ void display_func(void)
 	vec3 cl = collision_location;
 
 	glBegin(GL_POINTS);
-	
+
 	glVertex3f(cl.x, cl.y, cl.z);
 
 	glEnd();
 
 
+	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	{
+		player_game_piece_meshes[i].draw_tangent();
+	}
 
+	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	{
+		enemy_game_piece_meshes[i].draw_tangent();
+	}
 
 
 
@@ -792,7 +785,7 @@ void mouse_func(int button, int state, int x, int y)
 				}
 			}
 
-			collision_location = collision_transform*vec4(collision_location, 1);
+			collision_location = collision_transform * vec4(collision_location, 1);
 
 			if (first_assignment)
 			{

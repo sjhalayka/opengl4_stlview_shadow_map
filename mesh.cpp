@@ -1,62 +1,6 @@
 #include "mesh.h"
 
 
-void mesh::rotate_and_translate_mesh(float yaw, float pitch, vec3 translate_vec)
-{
-	for (size_t i = 0; i < triangles.size(); i++)
-	{
-		vec4 v0;
-		v0.x = triangles[i].vertex[0].x;
-		v0.y = triangles[i].vertex[0].y;
-		v0.z = triangles[i].vertex[0].z;
-		v0.w = 1;
-
-		vec4 v1;
-		v1.x = triangles[i].vertex[1].x;
-		v1.y = triangles[i].vertex[1].y;
-		v1.z = triangles[i].vertex[1].z;
-		v1.w = 1;
-
-		vec4 v2;
-		v2.x = triangles[i].vertex[2].x;
-		v2.y = triangles[i].vertex[2].y;
-		v2.z = triangles[i].vertex[2].z;
-		v2.w = 1;
-
-		static const mat4 identity_mat = glm::mat4(1.0f);
-
-		mat4 rot0_mat = rotate(identity_mat, yaw, glm::vec3(0.0, 1.0, 0.0));
-		mat4 rot1_mat = rotate(identity_mat, pitch, glm::vec3(1.0, 0.0, 0.0));
-		mat4 translate_mat = translate(identity_mat, translate_vec);
-
-		mat4 transform = translate_mat * rot0_mat * rot1_mat;
-
-		v0 = transform * v0;
-		v1 = transform * v1;
-		v2 = transform * v2;
-
-		triangles[i].vertex[0].x = v0.x;
-		triangles[i].vertex[0].y = v0.y;
-		triangles[i].vertex[0].z = v0.z;
-
-		triangles[i].vertex[1].x = v1.x;
-		triangles[i].vertex[1].y = v1.y;
-		triangles[i].vertex[1].z = v1.z;
-
-		triangles[i].vertex[2].x = v2.x;
-		triangles[i].vertex[2].y = v2.y;
-		triangles[i].vertex[2].z = v2.z;
-
-	}
-
-	get_vertices_and_normals_from_triangles();
-
-	init_opengl_data();
-
-	calc_AABB_min_max_locations();
-}
-
-
 void mesh::get_vertices_and_normals_from_triangles(void)
 {
 	face_normals.clear();

@@ -73,7 +73,7 @@ vertex_fragment_shader shadow_map;
 
 
 float sphere_scale = 1.0f;
-float game_piece_scale = 0.5f;
+float game_piece_scale = 0.25f;
 
 
 
