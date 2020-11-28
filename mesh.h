@@ -104,28 +104,52 @@ public:
 	void set_transform(void)
 	{
 		vec3 temp_dir = normalize(geodesic_dir);
+		vec3 temp_tangent = normalize(geodesic_tangent);
 
+		/*
 		float yaw = 0.0f;
 
 		if (fabsf(temp_dir.x) < 0.00001 && fabsf(temp_dir.z) < 0.00001)
-			yaw = 0.0f;
+			yaw = 0.0f;	
 		else
 			yaw = atan2f(temp_dir.x, temp_dir.z);
 
 		float pitch = -atan2f(temp_dir.y, sqrt(temp_dir.x * temp_dir.x + temp_dir.z * temp_dir.z));
 
-		static const mat4 identity_mat = mat4(1.0f);
+		float planeRightX = sin(pitch);
+		float planeRightZ = -cos(pitch);
 
-		const mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0, 0.0));
-		const mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
+			//	 Roll is the rightward lean of our up vector, computed here using a dot product.
+		float roll = asin(temp_dir.x * planeRightX + temp_dir.z * planeRightZ);
+		// If we're twisted upside-down, return a roll in the range +-(pi/2, pi)
+		if (temp_dir.y < 0)
+			roll = (0.0f < roll) - (roll < 0.0f) * 3.14f - roll;
+			*/
+
+//		static const mat4 identity_mat = mat4(1.0f);
+//
+//		const mat4 translate_mat = translate(identity_mat, temp_dir * displacement);
+//
+//		const mat4 rot0_mat = rotate(identity_mat, yaw, vec3(0.0, 1.0,	 0.0));
+//		const mat4 rot1_mat = rotate(identity_mat, pitch, vec3(1.0, 0.0, 0.0));
+//
+//		const vec3 tangent_transformed = normalize(inverse(rot0_mat * rot1_mat) * vec4(temp_tangent, 1.0f));
+//
+////		float roll = acos(dot(temp_tangent, normalize(geodesic_left)));
+//
+//		const mat4 rot2_mat = rotate(identity_mat, roll, vec3(0.0, 0.0, 1.0));
 		
-		const mat4 translate_mat = translate(identity_mat, temp_dir * displacement);
+		vec3 ndir = normalize(geodesic_dir);
+		vec3 ntan = normalize(geodesic_tangent);
+		vec3 nleft = cross(ntan, ndir);
 
-		const vec3 tangent_transformed = normalize((rot0_mat * rot1_mat) * vec4(normalize(geodesic_tangent), 0.0f));
-
-		const mat4 rot2_mat = rotate(identity_mat, acos(dot(normalize(geodesic_tangent), tangent_transformed)), vec3(0.0, 0.0, 1.0));
-
-		model_mat = translate_mat  * rot0_mat * rot1_mat * rot2_mat;
+		mat4 mat;
+		mat[0] = normalize(vec4(nleft, 0.0f));
+		mat[1] = normalize(vec4(ntan, 0.0f));
+		mat[2] = normalize(vec4(ndir, 0.0f));
+		mat[3] = vec4(ndir * displacement, 1.0f);
+		
+		model_mat = mat;
 	}
 
 

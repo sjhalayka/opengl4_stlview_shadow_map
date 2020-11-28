@@ -97,7 +97,6 @@ void shadeWithShadow()
     else
     {
         diffAndSpec = phongModelDiffAndSpec(false);
-
         frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
 
