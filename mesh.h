@@ -103,14 +103,14 @@ public:
 
 	void set_transform(void)
 	{
-		vec3 ndir = normalize(geodesic_dir);
-		vec3 ntan = normalize(geodesic_tangent);
-		vec3 nleft = cross(ntan, ndir);
+		const vec3 n_forward = normalize(geodesic_tangent);
+		const vec3 n_up = normalize(geodesic_dir);
+		const vec3 n_left = normalize(geodesic_left);
 
-		model_mat[0] = normalize(vec4(nleft, 0.0f));
-		model_mat[1] = normalize(vec4(ntan, 0.0f));
-		model_mat[2] = normalize(vec4(ndir, 0.0f));
-		model_mat[3] = vec4(ndir * displacement, 1.0f);
+		model_mat[0] = normalize(vec4(n_left, 0.0f));
+		model_mat[1] = normalize(vec4(n_forward, 0.0f));
+		model_mat[2] = normalize(vec4(n_up, 0.0f));
+		model_mat[3] = vec4(n_up * displacement, 1.0f);
 	}
 
 

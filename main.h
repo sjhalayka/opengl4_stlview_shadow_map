@@ -66,9 +66,6 @@ vector<vec3> vertices;
 vector<vec3> vertex_normals;
 
 
-std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
-
-
 vertex_fragment_shader shadow_map;
 
 

@@ -100,6 +100,8 @@ void shadeWithShadow()
         frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
 
+    frag_colour = pow( frag_colour, vec4(1.0 / 2.2) );
+
     /*
     // posterize https://www.geeks3d.com/20091027/shader-library-posterization-post-processing-effect-glsl/
         float gamma = 1.0; // 0.6

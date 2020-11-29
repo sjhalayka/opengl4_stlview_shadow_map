@@ -82,12 +82,14 @@ int main(int argc, char** argv)
 
 void idle_func(void)
 {
-	// do movement here
+	static std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
 	float x = elapsed.count() / 1000.0f * 2.0f*glm::pi<float>();
-	x *= 0.001f;
+	x *= 0.01f;
+
+	start_time = std::chrono::high_resolution_clock::now();
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 		player_game_piece_meshes[i].proceed_geodesic(x);
@@ -185,6 +187,7 @@ void reshape_func(int width, int height)
 
 void display_func(void)
 {
+	static std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
