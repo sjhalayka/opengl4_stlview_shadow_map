@@ -43,7 +43,7 @@ vec3 phongModelDiffAndSpec(bool do_specular)
     vec3 v2 = normalize(-Position.xyz);
     vec3 r2 = reflect( -s2, n2 );
     float sDotN2 = max( dot(s2,n2)*0.5f, 0.0 );
-    vec3 diffuse2 = LightIntensity*0.25 * MaterialKd * sDotN2;
+    vec3 diffuse2 = LightIntensity*0.25 * MaterialKa * sDotN2;
 
     float k = (1.0 - sDotN)/2.0;
     vec3 ret = diffuse + diffuse2 + MaterialKa*k;

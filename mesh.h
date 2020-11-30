@@ -55,10 +55,44 @@ public:
 
 	vec3 min_location, max_location;
 
+
+	void draw_basis()
+	{
+		draw_dir();
+		draw_tangent();
+		draw_left();
+
+	}
+
+	void draw_left(void)
+	{
+		vec3 centre = model_mat * vec4((max_location + min_location) / 2.0f, 1.0f);
+		vec3 left = geodesic_left * 0.5f;
+
+		glBegin(GL_LINES);
+
+		glVertex3f(centre.x, centre.y, centre.z);
+		glVertex3f(centre.x + left.x, centre.y + left.y, centre.z + left.z);
+
+		glEnd();
+	}
+	void draw_dir(void)
+	{
+		vec3 centre = model_mat * vec4((max_location + min_location) / 2.0f, 1.0f);
+		vec3 dir = geodesic_dir * 0.5f;
+
+		glBegin(GL_LINES);
+
+		glVertex3f(centre.x, centre.y, centre.z);
+		glVertex3f(centre.x + dir.x, centre.y + dir.y, centre.z + dir.z);
+
+		glEnd();
+	}
+
 	void draw_tangent(void)
 	{
 		vec3 centre = model_mat * vec4((max_location + min_location) / 2.0f, 1.0f);
-		vec3 tangent = geodesic_tangent;
+		vec3 tangent = geodesic_tangent * 0.5f;
 
 		glBegin(GL_LINES);
 

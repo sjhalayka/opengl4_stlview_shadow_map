@@ -41,6 +41,18 @@ int main(int argc, char** argv)
 		player_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale * 0.5f + game_piece_scale * 0.5f); // 1/2 + .25/2
 	}
 
+
+
+
+	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("classic.stl"))
+	{
+		cout << "Error: Could not properly read file fractal.stl" << endl;
+		return 2;
+	}
+
+	game_piece_mesh.scale_mesh(game_piece_scale);
+
+
 	for (size_t i = 0; i < 5; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
@@ -86,8 +98,8 @@ void idle_func(void)
 	std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
-	float x = elapsed.count() / 1000.0f * 2.0f*glm::pi<float>();
-	x *= 0.01f;
+	float x = elapsed.count() / 1000.0f;
+	x *= 0.1f;
 
 	start_time = std::chrono::high_resolution_clock::now();
 
@@ -201,7 +213,7 @@ void display_func(void)
 
 
 	vec3 player_colour(1, 0, 0);
-	vec3 enemy_colour(1, 1, 1);
+	vec3 enemy_colour(0.5f, 0.5f, 0.5f);
 
 
 	shadow_map.use_program();
@@ -647,6 +659,14 @@ void display_func(void)
 	glVertex3f(cl.x, cl.y, cl.z);
 
 	glEnd();
+
+
+
+	//for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	//	player_game_piece_meshes[i].draw_basis();
+
+	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	//	enemy_game_piece_meshes[i].draw_basis();
 
 	glFlush();
 	glutSwapBuffers();
