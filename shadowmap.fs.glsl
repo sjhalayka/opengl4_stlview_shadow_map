@@ -17,7 +17,7 @@ uniform vec3 MaterialKd = vec3(1.0, 1.0, 1.0);
 
 vec3 MaterialKs = vec3(1.0, 0.5, 0.0);
 vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
-float MaterialShininess = 100.0;
+float MaterialShininess = 10.0;
 
 layout (location = 0) out vec4 frag_colour;
 
@@ -100,7 +100,7 @@ void shadeWithShadow()
         frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
 
-    frag_colour = pow( frag_colour, vec4(1.0 / 1.5) );
+    frag_colour = pow( frag_colour, vec4(1.0 / 2.2) );
 
     /*
     // posterize https://www.geeks3d.com/20091027/shader-library-posterization-post-processing-effect-glsl/
