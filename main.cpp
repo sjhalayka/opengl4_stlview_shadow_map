@@ -99,7 +99,7 @@ void idle_func(void)
 	std::chrono::duration<float, std::milli> elapsed = end_time - start_time;
 
 	float x = elapsed.count() / 1000.0f;
-	x *= 0.1f;
+	x *= 0.25f;
 
 	start_time = std::chrono::high_resolution_clock::now();
 
@@ -207,13 +207,13 @@ void display_func(void)
 	mat4 lightPV, shadowBias;
 	Frustum lightFrustum;
 
-	glClearColor(1.0f, 0.5f, 0.0f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 
 
 	vec3 player_colour(1, 0, 0);
-	vec3 enemy_colour(0.5f, 0.5f, 0.5f);
+	vec3 enemy_colour(0.75f, 0.75f, 0.75f);
 
 
 	shadow_map.use_program();
