@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
 	game_piece_mesh.scale_mesh(game_piece_scale);
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 1; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	game_piece_mesh.scale_mesh(game_piece_scale);
 
 
-	for (size_t i = 0; i < 5; i++)
+	for (size_t i = 0; i < 0; i++)
 		enemy_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
@@ -103,11 +103,11 @@ void idle_func(void)
 
 	start_time = std::chrono::high_resolution_clock::now();
 
-	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
-		player_game_piece_meshes[i].proceed_geodesic(x);
+	//for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
+	//	player_game_piece_meshes[i].proceed_geodesic(x);
 
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-		enemy_game_piece_meshes[i].proceed_geodesic(x);
+	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	//	enemy_game_piece_meshes[i].proceed_geodesic(x);
 
 	glutPostRedisplay();
 }
@@ -123,7 +123,7 @@ bool init_opengl(const int& width, const int& height)
 	if (win_y < 1)
 		win_y = 1;
 
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(win_x, win_y);
 	win_id = glutCreateWindow("Binary Stereo Lithography file viewer");
@@ -170,6 +170,7 @@ bool init_opengl(const int& width, const int& height)
 
 	GLenum drawBuffers[] = { GL_NONE };
 	glDrawBuffers(1, drawBuffers);
+
 
 	return true;
 }
@@ -223,7 +224,8 @@ void display_func(void)
 	pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
 	pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
 
-	shadowBias = mat4(vec4(0.5f, 0.0f, 0.0f, 0.0f),
+	shadowBias = mat4(
+		vec4(0.5f, 0.0f, 0.0f, 0.0f),
 		vec4(0.0f, 0.5f, 0.0f, 0.0f),
 		vec4(0.0f, 0.0f, 0.5f, 0.0f),
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
@@ -238,6 +240,14 @@ void display_func(void)
 
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
+
+	vec3 piece_dir = normalize(player_game_piece_meshes[0].geodesic_dir); // normalize(centre);// = normalize(vec3(1, 1, 1));
+	float dp_limit = -0.5f;
+	int highlight_move_region = 0;
+
+	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "piece_dir"), piece_dir.x, piece_dir.y, piece_dir.z);
+	glUniform1f(glGetUniformLocation(shadow_map.get_program(), "dp_limit"), dp_limit);
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "highlight_move_region"), 0);
 
 
 	mat4 model = mat4(1.0f);
@@ -321,7 +331,9 @@ void display_func(void)
 
 
 	// reset camera matrices
-	main_camera.calculate_camera_matrices(win_x, win_y);
+
+	if(false == screenshot_mode)
+		main_camera.calculate_camera_matrices(win_x, win_y);
 
 	model = mat4(1.0f);
 	view = main_camera.view_mat;
@@ -360,9 +372,12 @@ void display_func(void)
 	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
+
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "highlight_move_region"), 1);
+
 	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
-
+	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "highlight_move_region"), 0);
 
 
 
@@ -649,7 +664,7 @@ void display_func(void)
 
 
 
-	glDisable(GL_DEPTH);
+	/*glDisable(GL_DEPTH);
 	glPointSize(4.0f);
 
 	vec3 cl = collision_location;
@@ -658,7 +673,7 @@ void display_func(void)
 
 	glVertex3f(cl.x, cl.y, cl.z);
 
-	glEnd();
+	glEnd();*/
 
 
 
@@ -669,7 +684,9 @@ void display_func(void)
 	//	enemy_game_piece_meshes[i].draw_basis();
 
 	glFlush();
-	glutSwapBuffers();
+
+	//if(false == screenshot_mode)
+		glutSwapBuffers();
 }
 
 void keyboard_func(unsigned char key, int x, int y)
@@ -677,6 +694,7 @@ void keyboard_func(unsigned char key, int x, int y)
 	switch (tolower(key))
 	{
 	case 'a':
+		take_screenshot(4, "out.tga");// , const bool reverse_rows = false)
 		break;
 
 	default:

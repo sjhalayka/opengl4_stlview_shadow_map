@@ -5,6 +5,7 @@ layout (location=1) in vec3 normal;
 
 out vec3 Normal;
 out vec3 Position;
+out vec3 Untransformed_Position;
 out vec4 ShadowCoord;
 
 
@@ -24,5 +25,8 @@ void main()
     Position = (mv * vec4(position,1.0)).xyz;
     Normal = normalize( NormalMatrix * normal );
     ShadowCoord = ShadowMatrix * vec4(position, 1.0);
+    Untransformed_Position = position;
+
     gl_Position = mvp * vec4(position, 1.0);
+
 }
