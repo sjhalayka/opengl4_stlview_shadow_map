@@ -139,7 +139,7 @@ void mesh::init_opengl_data(void)
 	}
 }
 
-bool mesh::read_triangles_from_binary_stereo_lithography_file(const char *const file_name)
+bool mesh::read_triangles_from_binary_stereo_lithography_file(const char *const file_name, bool randomize_tris)
 {
 	triangles.clear();
 	
@@ -212,6 +212,23 @@ bool mesh::read_triangles_from_binary_stereo_lithography_file(const char *const 
     }
 
 	in.close();
+
+	if (randomize_tris)
+	{
+		mt19937 mt_rand(static_cast<unsigned int>(time(0)));
+
+		for (size_t i = 0; i < triangles.size(); i++)
+		{
+			size_t a = mt_rand() % triangles.size();
+			size_t b = mt_rand() % triangles.size();
+
+			triangle temp = triangles[a];
+			triangles[a] = triangles[b];
+			triangles[b] = temp;
+
+		}
+	}
+
 
 	get_vertices_and_normals_from_triangles();
 
@@ -380,7 +397,8 @@ void mesh::draw_AABB(void)
 
 void mesh::draw(GLint render_shader_program,
 	int win_x,
-	int win_y
+	int win_y,
+	bool ss_mode
 //	uv_camera& main_camera,
 //	GLint proj_matrix_uniform_location,
 //	GLint view_matrix_uniform_location,
@@ -388,6 +406,14 @@ void mesh::draw(GLint render_shader_program,
 //	bool use_specular
 )
 {
+	size_t stride_factor = 0;
+
+	if (ss_mode)
+		stride_factor = 1;
+	else
+		stride_factor = 10;
+
+
 	glUseProgram(render_shader_program);
 
 	//main_camera.calculate_camera_matrices(win_x, win_y);
@@ -408,7 +434,7 @@ void mesh::draw(GLint render_shader_program,
 	GLuint num_vertices = static_cast<GLuint>(opengl_vertex_data.size()) / components_per_vertex;
 
 	glBindBuffer(GL_ARRAY_BUFFER, triangle_buffer);
-	glBufferData(GL_ARRAY_BUFFER, opengl_vertex_data.size() * sizeof(GLfloat), &opengl_vertex_data[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, opengl_vertex_data.size() * sizeof(GLfloat)/ stride_factor, &opengl_vertex_data[0], GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(glGetAttribLocation(render_shader_program, "position"));
 	glVertexAttribPointer(glGetAttribLocation(render_shader_program, "position"),
@@ -426,7 +452,8 @@ void mesh::draw(GLint render_shader_program,
 		components_per_vertex * sizeof(GLfloat),
 		(const GLvoid*)(components_per_position * sizeof(GLfloat)));
 
-	glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+
+	glDrawArrays(GL_TRIANGLES, 0, num_vertices/ stride_factor);
 
 	glDeleteBuffers(1, &triangle_buffer);
 }

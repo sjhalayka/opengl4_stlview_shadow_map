@@ -4,36 +4,45 @@
 
 int main(int argc, char** argv)
 {
-
-	if (false == sphere_mesh.read_triangles_from_binary_stereo_lithography_file("sphere.stl"))
+	if (argc != 2)
 	{
-		cout << "Error: Could not properly read file sphere.stl" << endl;
-		return 2;
+		return 0;
 	}
+	//if (false == sphere_mesh.read_triangles_from_binary_stereo_lithography_file("sphere.stl"))
+	//{
+	//	cout << "Error: Could not properly read file sphere.stl" << endl;
+	//	return 2;
+	//}
 
-	sphere_mesh.scale_mesh(sphere_scale); // radius == 0.5f;
+	//sphere_mesh.scale_mesh(sphere_scale); // radius == 0.5f;
 
+	//if (false == out_stl.read_triangles_from_binary_stereo_lithography_file("out.stl"))
+	//{
+	//	cout << "Error: Could not properly read file out.stl" << endl;
+	//	return 2;
+	//}
 
+	//out_stl.scale_mesh(1); // radius == 0.5f;
 
 
 
 	mesh game_piece_mesh;
 
-	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("fractal.stl"))
+	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file(argv[1], true))
 	{
-		cout << "Error: Could not properly read file fractal.stl" << endl;
+		cout << "Error: Could not properly read file out.stl" << endl;
 		return 2;
 	}
 
-	game_piece_mesh.scale_mesh(game_piece_scale);
+	//game_piece_mesh.scale_mesh(1);
 
 	for (size_t i = 0; i < 1; i++)
 		player_game_piece_meshes.push_back(game_piece_mesh);
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
-		vec3 dir = get_pseudorandom_unit_direction();
-		vec3 dir2 = get_pseudorandom_unit_direction();
+		vec3 dir(1, 0, 0);// = get_pseudorandom_unit_direction();
+		vec3 dir2(0, 1, 0);// = get_pseudorandom_unit_direction();
 
 		vec3 left = normalize(cross(dir, dir2));
 		vec3 tangent = cross(dir, left);
@@ -44,28 +53,28 @@ int main(int argc, char** argv)
 
 
 
-	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("classic.stl"))
-	{
-		cout << "Error: Could not properly read file fractal.stl" << endl;
-		return 2;
-	}
+	//if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("classic.stl"))
+	//{
+	//	cout << "Error: Could not properly read file fractal.stl" << endl;
+	//	return 2;
+	//}
 
-	game_piece_mesh.scale_mesh(game_piece_scale);
+	//game_piece_mesh.scale_mesh(game_piece_scale);
 
 
-	for (size_t i = 0; i < 0; i++)
-		enemy_game_piece_meshes.push_back(game_piece_mesh);
+	//for (size_t i = 0; i < 0; i++)
+	//	enemy_game_piece_meshes.push_back(game_piece_mesh);
 
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-	{
-		vec3 dir = get_pseudorandom_unit_direction();
-		vec3 dir2 = get_pseudorandom_unit_direction();
+	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	//{
+	//	vec3 dir = get_pseudorandom_unit_direction();
+	//	vec3 dir2 = get_pseudorandom_unit_direction();
 
-		vec3 left = normalize(cross(dir, dir2));
-		vec3 tangent = cross(dir, left);
+	//	vec3 left = normalize(cross(dir, dir2));
+	//	vec3 tangent = cross(dir, left);
 
-		enemy_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale * 0.5f + game_piece_scale * 0.5f); // 1/2 + .25/2
-	}
+	//	enemy_game_piece_meshes[i].init_geodesic(dir, left, tangent, sphere_scale * 0.5f + game_piece_scale * 0.5f); // 1/2 + .25/2
+	//}
 
 
 
@@ -208,7 +217,7 @@ void display_func(void)
 	mat4 lightPV, shadowBias;
 	Frustum lightFrustum;
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 
@@ -242,7 +251,7 @@ void display_func(void)
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "shadow_map"), 0);
 
 	vec3 piece_dir = normalize(player_game_piece_meshes[0].geodesic_dir); // normalize(centre);// = normalize(vec3(1, 1, 1));
-	float dp_limit = -0.5f;
+	float dp_limit = 0.5f;
 	int highlight_move_region = 0;
 
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "piece_dir"), piece_dir.x, piece_dir.y, piece_dir.z);
@@ -291,7 +300,9 @@ void display_func(void)
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
-	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+	//out_stl.draw(shadow_map.get_program(), win_x, win_y);
+
+	//sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 
 
@@ -307,23 +318,23 @@ void display_func(void)
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
-		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
 
 	}
 
-	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
+	//glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
 
-	for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
-	{
-		model = enemy_game_piece_meshes[i].model_mat;
-		normal = mat3(vec3((lightFrustum.getViewMatrix() * model)[0]), vec3((lightFrustum.getViewMatrix() * model)[1]), vec3((lightFrustum.getViewMatrix() * model)[2]));
-		shadow = lightPV * model;
-		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
-		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
-		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
+	//for (size_t i = 0; i < enemy_game_piece_meshes.size(); i++)
+	//{
+	//	model = enemy_game_piece_meshes[i].model_mat;
+	//	normal = mat3(vec3((lightFrustum.getViewMatrix() * model)[0]), vec3((lightFrustum.getViewMatrix() * model)[1]), vec3((lightFrustum.getViewMatrix() * model)[2]));
+	//	shadow = lightPV * model;
+	//	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
+	//	glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ModelMatrix"), 1, GL_FALSE, &model[0][0]);
+	//	glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 
-		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
-	}
+	//	enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+	//}
 
 
 
@@ -375,7 +386,8 @@ void display_func(void)
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "highlight_move_region"), 1);
 
-	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+	//sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "highlight_move_region"), 0);
 
@@ -393,19 +405,34 @@ void display_func(void)
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
-		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
 
-		glCullFace(GL_FRONT);
-		glPolygonMode(GL_BACK, GL_LINE);
+		if (true == screenshot_mode)
+		{
+			glCullFace(GL_FRONT);
+			glPolygonMode(GL_BACK, GL_LINE);
 
-		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
+			glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
 
-		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
-		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+			glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+			player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
+			glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
-		glPolygonMode(GL_BACK, GL_FILL);
-		glCullFace(GL_BACK);
+			glPolygonMode(GL_BACK, GL_FILL);
+			glCullFace(GL_BACK);
+		}
+
+		//glPolygonMode(GL_FRONT, GL_LINE);
+
+		//glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
+
+		//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
+		//player_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+		//glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
+
+		glPolygonMode(GL_FRONT, GL_FILL);
+
+
 	}
 
 
@@ -421,7 +448,7 @@ void display_func(void)
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
-		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
 
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_BACK, GL_LINE);
@@ -429,7 +456,7 @@ void display_func(void)
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		enemy_game_piece_meshes[i].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 		glPolygonMode(GL_BACK, GL_FILL);
@@ -452,7 +479,9 @@ void display_func(void)
 	glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), 0, 0, 0);
 
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-	sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
+
+	//out_stl.draw(shadow_map.get_program(), win_x, win_y);
+	//sphere_mesh.draw(shadow_map.get_program(), win_x, win_y);
 	glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 	glPolygonMode(GL_BACK, GL_FILL);
@@ -480,11 +509,11 @@ void display_func(void)
 	s += 1.0f;
 	s *= 2.0f;
 
-	if (col_loc == sphere)
+	if (0)//col_loc == sphere)
 	{
 		sphere_mesh.draw_AABB();
 	}
-	else if (col_loc == player_game_piece)
+	else if (0)//col_loc == player_game_piece)
 	{
 		vec3 outline_colour(0, 1 * s, 0);
 
@@ -541,11 +570,11 @@ void display_func(void)
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
-		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
 
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 		glDisable(GL_POLYGON_STIPPLE);
@@ -555,7 +584,7 @@ void display_func(void)
 		glEnable(GL_DEPTH_TEST);
 
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), player_colour.x, player_colour.y, player_colour.z);
-		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();	
 
 		// Draw outline code from NeHe lesson 37:
 		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
@@ -565,7 +594,7 @@ void display_func(void)
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		player_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 		glPolygonMode(GL_BACK, GL_FILL);
@@ -573,7 +602,7 @@ void display_func(void)
 
 
 	}
-	else if (col_loc == enemy_game_piece)
+	else if (0)//col_loc == enemy_game_piece)
 	{
 		vec3 outline_colour(0, 0, 1 * s);
 
@@ -630,11 +659,11 @@ void display_func(void)
 		glUniformMatrix3fv(glGetUniformLocation(shadow_map.get_program(), "NormalMatrix"), 1, GL_FALSE, &normal[0][0]);
 		glUniformMatrix4fv(glGetUniformLocation(shadow_map.get_program(), "ShadowMatrix"), 1, GL_FALSE, &shadow[0][0]);
 
-		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);
 
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 		glDisable(GL_POLYGON_STIPPLE);
@@ -644,7 +673,7 @@ void display_func(void)
 		glEnable(GL_DEPTH_TEST);
 
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), enemy_colour.x, enemy_colour.y, enemy_colour.z);
-		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();	
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();	
 
 		// Draw outline code from NeHe lesson 37:
 		// http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=37
@@ -654,7 +683,7 @@ void display_func(void)
 		glUniform3f(glGetUniformLocation(shadow_map.get_program(), "MaterialKd"), outline_colour.x, outline_colour.y, outline_colour.z);
 
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 1);
-		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y);// draw_AABB();
+		enemy_game_piece_meshes[collision_location_index].draw(shadow_map.get_program(), win_x, win_y, screenshot_mode);// draw_AABB();
 		glUniform1i(glGetUniformLocation(shadow_map.get_program(), "flat_colour"), 0);
 
 		glPolygonMode(GL_BACK, GL_FILL);
@@ -685,7 +714,7 @@ void display_func(void)
 
 	glFlush();
 
-	//if(false == screenshot_mode)
+	if(false == screenshot_mode)
 		glutSwapBuffers();
 }
 
@@ -694,7 +723,7 @@ void keyboard_func(unsigned char key, int x, int y)
 	switch (tolower(key))
 	{
 	case 'a':
-		take_screenshot(4, "out.tga");// , const bool reverse_rows = false)
+		take_screenshot(8, "out.tga");// , const bool reverse_rows = false)
 		break;
 
 	default:

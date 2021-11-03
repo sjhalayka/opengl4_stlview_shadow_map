@@ -72,11 +72,12 @@ void shadeWithShadow()
     }
 
     float shadow = 1.0;
-
+    
     if( ShadowCoord.z >= 0.0 )
     {
         shadow = textureProj(shadow_map, ShadowCoord);
 
+        /*
         vec3 n = normalize(Normal);
         vec3 n2 = normalize(LightPosition.xyz);
         float dp = dot(n, n2);
@@ -90,28 +91,26 @@ void shadeWithShadow()
             if(shadow == 0.0)
                 shadow = 1.0 - dp;
         }
+        */    
     }
+    
     
     vec3 diffAndSpec;
     
     if(shadow == 1.0)
     {
         diffAndSpec = phongModelDiffAndSpec(true);
-        frag_colour = vec4(diffAndSpec, 1.0);
+        frag_colour = vec4(diffAndSpec, 1.0);// + vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
     }
     else
     {
         diffAndSpec = phongModelDiffAndSpec(false);
-        frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
+        frag_colour = vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0) + vec4(diffAndSpec, 1.0) + vec4(diffAndSpec * shadow + MaterialKa*(1.0 - shadow), 1.0);
+        frag_colour /= 3;
     }
 
     frag_colour = pow( frag_colour, vec4(1.0 / 2.2) );
 
-
-        if(highlight_move_region == 1 && dot(normalize(Untransformed_Position), normalize(piece_dir)) > dp_limit)
-        {
-            frag_colour += vec4(0, 1, 0, 1);
-        }
 
 
     /*

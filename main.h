@@ -54,6 +54,7 @@ vector<mesh> enemy_game_piece_meshes;
 
 mesh sphere_mesh;
 
+
 enum possible_collision_locations { player_game_piece, enemy_game_piece, sphere, background };
 possible_collision_locations col_loc = background;
 size_t collision_location_index = 0;

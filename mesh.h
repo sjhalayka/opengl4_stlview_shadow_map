@@ -42,6 +42,9 @@ using std::numeric_limits;
 
 #include <cstring> // for memcpy()
 
+#include <random>
+using std::mt19937;
+
 class mesh
 {
 public:
@@ -104,10 +107,10 @@ public:
 
 	void calc_AABB_min_max_locations(void);
 
-	bool read_triangles_from_binary_stereo_lithography_file(const char* const file_name);
+	bool read_triangles_from_binary_stereo_lithography_file(const char* const file_name, bool randomize_tris);
 	void scale_mesh(float max_extent);
 
-	void draw(GLint render_shader_program, int win_x, int win_y);
+	void draw(GLint render_shader_program, int win_x, int win_y, bool ss_mode);
 
 	void draw_AABB(void);
 
@@ -121,7 +124,7 @@ public:
 		geodesic_dir = dir;
 		geodesic_left = left;
 		geodesic_tangent = tangent;
-		displacement = displacement_factor;
+		// displacement = displacement_factor;
 
 		set_transform();
 	}
