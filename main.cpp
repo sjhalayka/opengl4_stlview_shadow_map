@@ -41,8 +41,8 @@ int main(int argc, char** argv)
 
 	for (size_t i = 0; i < player_game_piece_meshes.size(); i++)
 	{
-		vec3 dir(1, 0, 0);// = get_pseudorandom_unit_direction();
-		vec3 dir2(0, 1, 0);// = get_pseudorandom_unit_direction();
+		vec3 dir(-1, 0, 0);// = get_pseudorandom_unit_direction();
+		vec3 dir2(0, -1, 0);// = get_pseudorandom_unit_direction();
 
 		vec3 left = normalize(cross(dir, dir2));
 		vec3 tangent = cross(dir, left);
