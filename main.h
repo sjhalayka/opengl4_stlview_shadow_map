@@ -54,6 +54,8 @@ vector<mesh> enemy_game_piece_meshes;
 
 mesh sphere_mesh;
 
+vector<vec3> colours;
+
 
 enum possible_collision_locations { player_game_piece, enemy_game_piece, sphere, background };
 possible_collision_locations col_loc = background;
