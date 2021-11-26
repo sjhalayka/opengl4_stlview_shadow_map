@@ -31,31 +31,41 @@ int main(int argc, char** argv)
 	//	return 2;
 	//}
 
-	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out0.stl", true))
+
+		if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out.stl", true))
 	{
 		cout << "Error: Could not properly read file out0.stl" << endl;
 		return 2;
 	}
 
 	player_game_piece_meshes.push_back(game_piece_mesh);
-	
-	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out1.stl", true))
-	{
-		cout << "Error: Could not properly read file out1.stl" << endl;
-		return 2;
-	}
-
-	player_game_piece_meshes.push_back(game_piece_mesh);
 
 
+	//if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out0.stl", true))
+	//{
+	//	cout << "Error: Could not properly read file out0.stl" << endl;
+	//	return 2;
+	//}
 
-	if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out2.stl", true))
-	{
-		cout << "Error: Could not properly read file out2.stl" << endl;
-		return 2;
-	}
+	//player_game_piece_meshes.push_back(game_piece_mesh);
+	//
+	//if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out1.stl", true))
+	//{
+	//	cout << "Error: Could not properly read file out1.stl" << endl;
+	//	return 2;
+	//}
 
-	player_game_piece_meshes.push_back(game_piece_mesh);
+	//player_game_piece_meshes.push_back(game_piece_mesh);
+
+
+
+	//if (false == game_piece_mesh.read_triangles_from_binary_stereo_lithography_file("out2.stl", true))
+	//{
+	//	cout << "Error: Could not properly read file out2.stl" << endl;
+	//	return 2;
+	//}
+
+	//player_game_piece_meshes.push_back(game_piece_mesh);
 
 	//game_piece_mesh.scale_mesh(1);
 
